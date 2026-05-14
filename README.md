@@ -179,6 +179,10 @@
 
 https://www.figma.com/design/lwDX4qdgfRBJlW9hEoCyL5/%E5%8D%92%E6%A5%AD%E5%88%B6%E4%BD%9C?node-id=0-1&t=dy2pEwhaRpUE7qFu-1
 
+### ER図
+
+https://i.gyazo.com/4dbaff994ecc8316d806c44e388ce535.png
+
 ### MVPで作る機能
 
 #### 会員登録 / ログイン機能
