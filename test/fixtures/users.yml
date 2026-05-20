@@ -1,0 +1,11 @@
+one:
+  name: test1
+  email: test1@example.com
+  crypted_password: abc
+  salt: abc
+  
+two:
+  name: test2
+  email: test2@example.com
+  crypted_password: def
+  salt: def
