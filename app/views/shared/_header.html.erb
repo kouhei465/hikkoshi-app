@@ -2,7 +2,12 @@
   <%= link_to "引っ越し費用管理アプリ", root_path, class: "fw-bold fs-4 text-dark text-decoration-none" %>
 
   <nav class="d-flex gap-4">
-    <%= link_to "新規登録", new_user_path, class: "text-dark text-decoration-none" %>
-    <%= link_to "ログイン", "#", class: "text-dark text-decoration-none" %>
+    <% if logged_in? %>
+      <span class="text-dark"><%= current_user.name %></span>
+      <%= link_to "ログアウト", "#", class: "text-dark text-decoration-none" %>
+    <% else %>
+      <%= link_to "新規登録", new_user_path, class: "text-dark text-decoration-none" %>
+      <%= link_to "ログイン", login_path, class: "text-dark text-decoration-none" %>
+    <% end %>
   </nav>
 </header>

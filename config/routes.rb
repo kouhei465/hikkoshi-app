@@ -5,5 +5,8 @@ Rails.application.routes.draw do
 
   get "top/index"
 
+  get "login", to: "user_sessions#new"
+  post "login", to: "user_sessions#create"
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

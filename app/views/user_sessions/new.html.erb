@@ -1,0 +1,22 @@
+<main class="flex-grow-1 d-flex flex-column justify-content-center align-items-center pb-5">
+  <div class="col-4">
+    <% if flash.now[:alert] %>
+      <div class="alert alert-danger">
+        <%= flash.now[:alert] %>
+      </div>
+    <% end %>
+
+    <%= form_with url: login_path do |f| %>
+      <%= f.email_field :email, placeholder: "メールアドレス", class: "form-control mb-3" %>
+      <%= f.password_field :password, placeholder: "パスワード", class: "form-control mb-3" %>
+
+      <div class="text-center">
+        <%= f.submit "ログイン", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+
+    <div class="text-center mt-4">
+      <%= link_to "初めてご利用の方はこちら", new_user_path %>
+    </div>
+  </div>
+</main>
