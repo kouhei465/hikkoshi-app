@@ -255,6 +255,9 @@ GEM
     rails-html-sanitizer (1.7.0)
       loofah (~> 2.25)
       nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
+    rails-i18n (7.0.10)
+      i18n (>= 0.7, < 2)
+      railties (>= 6.0.0, < 8)
     railties (7.2.3.1)
       actionpack (= 7.2.3.1)
       activesupport (= 7.2.3.1)
@@ -382,6 +385,7 @@ DEPENDENCIES
   pg (~> 1.1)
   puma (>= 5.0)
   rails (~> 7.2.3, >= 7.2.3.1)
+  rails-i18n
   rubocop-rails-omakase
   selenium-webdriver
   sorcery (~> 0.18.0)
@@ -488,6 +492,7 @@ CHECKSUMS
   rails (7.2.3.1) sha256=96c0a0160081ef3f1e407438880f6194c6ec94cdf40c8f83fc7bb22c279eba94
   rails-dom-testing (2.3.0) sha256=8acc7953a7b911ca44588bf08737bc16719f431a1cc3091a292bca7317925c1d
   rails-html-sanitizer (1.7.0) sha256=28b145cceaf9cc214a9874feaa183c3acba036c9592b19886e0e45efc62b1e89
+  rails-i18n (7.0.10) sha256=efae16e0ac28c0f42e98555c8db1327d69ab02058c8b535e0933cb106dd931ca
   railties (7.2.3.1) sha256=aea3393ee10243ceedcbeccb45458a0d58b524b6d21bf32eff8b93853baae15a
   rainbow (3.1.1) sha256=039491aa3a89f42efa1d6dec2fc4e62ede96eb6acd95e52f1ad581182b79bc6a
   rake (13.4.2) sha256=cb825b2bd5f1f8e91ca37bddb4b9aaf345551b4731da62949be002fa89283701

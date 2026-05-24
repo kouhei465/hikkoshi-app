@@ -59,3 +59,4 @@ group :test do
 end
 
 gem "sorcery", "~> 0.18.0"
+gem "rails-i18n"
