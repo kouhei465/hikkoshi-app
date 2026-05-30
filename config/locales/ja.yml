@@ -6,3 +6,23 @@ ja:
         email: "メールアドレス"
         password: "パスワード"
         password_confirmation: "パスワード（確認用）"
+
+      cost_list:
+        budget: "予算"
+
+      cost_item:
+        amount: "金額"
+        status: "状態"
+
+  enums:
+    cost_item:
+      category:
+        rent: "賃貸費用"
+        moving: "引っ越し業者費用"
+        furniture: "家具家電費用"
+        other: "その他費用"
+
+      status:
+        unchecked: "未確認"
+        estimated: "概算"
+        confirmed: "確定"
