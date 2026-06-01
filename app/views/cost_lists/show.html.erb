@@ -1,0 +1,52 @@
+<main class="container py-5">
+  <h2 class="mb-4">計算結果</h2>
+
+  <div class="bg-light p-4 mb-4">
+    <h5>費用合計</h5>
+    <p>
+      <%= number_to_currency(@total_amount, unit: "円", precision: 0, format: "%n%u") %>です
+    </p>
+
+    <% if @budget_amount.zero? %>
+      <p>予算が入力されていません</p>
+    <% elsif @difference >= 0 %>
+      <p>
+        予算まであと
+        <%= number_to_currency(@difference, unit: "円", precision: 0, format: "%n%u") %>
+        です
+      </p>
+    <% else %>
+      <p>
+        予算を
+        <%= number_to_currency(@difference.abs, unit: "円", precision: 0, format: "%n%u") %>
+        オーバーしています
+      </p>
+    <% end %>
+  </div>
+
+  <div class="bg-light p-4 mb-4">
+    <h5>費用内訳</h5>
+
+    <% @cost_list.cost_items.each do |item| %>
+      <div class="d-flex justify-content-between border-bottom py-2">
+        <div>
+          <strong><%= item.name %></strong>
+          <span class="ms-2">
+            <%= t("enums.cost_item.status.#{item.status}") %>
+          </span>
+        </div>
+
+        <div>
+          <%= number_to_currency(item.amount.to_i, unit: "円", precision: 0, format: "%n%u") %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="bg-light p-4 mb-4">
+    <h5>判断メモ</h5>
+    <p></p>
+  </div>
+
+  <%= link_to "もう一度計算する", new_cost_list_path, class: "btn btn-primary" %>
+</main>
