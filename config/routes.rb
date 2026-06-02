@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   resources :cost_lists, only: %i[new create show] do
     collection do
       get :result
+      post :save_session
     end
   end
 
