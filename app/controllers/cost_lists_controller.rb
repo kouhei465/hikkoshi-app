@@ -27,20 +27,20 @@ class CostListsController < ApplicationController
     calculate_result
   end
 
-  def save_session
-    return redirect_to new_cost_list_path, alert: "保存する費用データがありません" if session[:cost_list_params].blank?
-    return redirect_to login_path, alert: "保存するにはログインしてください" unless logged_in?
+def save_session
+  return redirect_to mypage_path, alert: "保存する費用データがありません" if session[:cost_list_params].blank?
+  return redirect_to login_path, alert: "保存するにはログインしてください" unless logged_in?
 
-    @cost_list = current_user.cost_lists.build(session[:cost_list_params])
-    @cost_list.title = "引っ越し費用リスト"
+  @cost_list = current_user.cost_lists.build(session[:cost_list_params])
+  @cost_list.title = "引っ越し費用リスト"
 
-    if @cost_list.save
-      session.delete(:cost_list_params)
-      redirect_to cost_list_path(@cost_list), notice: "費用リストを保存しました"
-    else
-      redirect_to result_cost_lists_path, alert: "保存に失敗しました"
-    end
+  if @cost_list.save
+    session.delete(:cost_list_params)
+    redirect_to mypage_path, notice: "費用リストを保存しました"
+  else
+    redirect_to result_cost_lists_path, alert: "保存に失敗しました"
   end
+end
 
   private
 

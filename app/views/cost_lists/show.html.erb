@@ -37,7 +37,7 @@
 
 <div class="d-flex gap-3">
   <% if logged_in? %>
-    <%= button_to "内容を保存する", save_session_cost_lists_path, method: :post, class: "btn btn-primary" %>
+    <%= button_to "内容を保存する",save_session_cost_lists_path,method: :post,data: { turbo: false },class: "btn btn-primary" %>
   <% else %>
     <%= link_to "ログインして内容を保存する", login_path, class: "btn btn-primary" %>
   <% end %>
