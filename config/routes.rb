@@ -3,6 +3,8 @@ Rails.application.routes.draw do
 
   resources :users, only: %i[new create]
 
+  resource :mypage, only: %i[show]
+
   resources :cost_lists, only: %i[new create show] do
     collection do
       get :result
