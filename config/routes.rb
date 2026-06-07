@@ -10,6 +10,12 @@ Rails.application.routes.draw do
       get :result
       post :save_session
     end
+
+    resources :cost_items, only: [] do
+      member do
+        patch :update_status
+      end
+    end
   end
 
   get "top/index"

@@ -20,6 +20,26 @@
 <body>
   <div class="d-flex flex-column min-vh-100">
     <%= render "shared/header" %>
+
+    <% flash.each do |message_type, message| %>
+      <% bootstrap_class =
+        case message_type.to_sym
+        when :notice
+          "alert-success"
+        when :alert
+          "alert-danger"
+        else
+          "alert-info"
+        end
+      %>
+
+      <div class="container mt-3">
+        <div class="alert <%= bootstrap_class %>">
+          <%= message %>
+        </div>
+      </div>
+    <% end %>
+
     <%= yield %>
     <%= render "shared/footer" %>
   </div>
