@@ -1,47 +1,20 @@
 <main class="container py-5">
-  <h2 class="mb-4">計算結果</h2>
+  <h2 class="mb-4">費用詳細</h2>
+
+  <%= render "cost_summary",cost_list: @cost_list,total_amount: @total_amount,budget_amount: @budget_amount,difference: @difference,editable_status: true %>
 
   <div class="bg-light p-4 mb-4">
-    <h5>費用合計</h5>
-    <p><%= number_to_currency(@total_amount, unit: "円", precision: 0, format: "%n%u") %>です</p>
-    <% if @budget_amount.zero? %>
-      <p>予算が入力されていません</p>
-    <% elsif @difference >= 0 %>
-      <p>予算まであと<%= number_to_currency(@difference, unit: "円", precision: 0, format: "%n%u") %>です</p>
+    <h5>判断メモ</h5>
+
+    <% if @cost_list.memo.present? %>
+      <p><%= simple_format(@cost_list.memo) %></p>
     <% else %>
-      <p>予算を<%= number_to_currency(@difference.abs, unit: "円", precision: 0, format: "%n%u") %>オーバーしています</p>
+      <p class="text-muted mb-0">メモはまだありません</p>
     <% end %>
   </div>
 
-  <div class="bg-light p-4 mb-4">
-    <h5>費用内訳</h5>
-    <% @cost_list.cost_items.each do |item| %>
-      <div class="d-flex justify-content-between border-bottom py-2">
-        <div>
-          <strong><%= item.name %></strong>
-          <span class="ms-2">
-            <%= t("enums.cost_item.status.#{item.status}") %>
-          </span>
-        </div>
-        <div>
-          <%= number_to_currency(item.amount.to_i, unit: "円", precision: 0, format: "%n%u") %>
-        </div>
-      </div>
-    <% end %>
+  <div class="d-flex gap-3">
+    <%= link_to "マイページに戻る", mypage_path, class: "btn btn-secondary" %>
+    <%= link_to "計算をやり直す", new_cost_list_path, class: "btn btn-primary" %>
   </div>
-
-<div class="bg-light p-4 mb-4">
-  <h5>判断メモ</h5>
-  <p class="text-muted mb-0">メモはまだありません</p>
-</div>
-
-<div class="d-flex gap-3">
-  <% if logged_in? %>
-    <%= button_to "内容を保存する",save_session_cost_lists_path,method: :post,data: { turbo: false },class: "btn btn-primary" %>
-  <% else %>
-    <%= link_to "ログインして内容を保存する", login_path, class: "btn btn-primary" %>
-  <% end %>
-
-  <%= link_to "もう一度計算する", new_cost_list_path, class: "btn btn-primary" %>
-</div>
 </main>
