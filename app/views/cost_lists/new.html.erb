@@ -1,32 +1,5 @@
 <main class="container py-5">
   <h2 class="mb-4">費用入力</h2>
 
-  <%= form_with model: @cost_list, data: { turbo: false } do |f| %>
-    <div class="mb-3">
-      <%= f.label :budget, "予算" %>
-      <%= f.number_field :budget, class: "form-control" %>
-    </div>
-
-    <%= f.fields_for :cost_items do |item_form| %>
-      <div class="mb-4">
-        <h5><%= item_form.object.name %></h5>
-
-        <%= item_form.hidden_field :name %>
-        <%= item_form.hidden_field :category %>
-
-        <%= item_form.label :amount, "金額" %>
-        <%= item_form.number_field :amount, class: "form-control mb-2" %>
-
-        <%= item_form.label :status, "状態" %>
-        <%= item_form.select :status,
-                             CostItem.statuses.keys.map { |key| [t("enums.cost_item.status.#{key}"), key] },
-                             {},
-                             class: "form-select" %>
-      </div>
-    <% end %>
-
-    <div class="text-center">
-      <%= f.submit "計算する", class: "btn btn-primary" %>
-    </div>
-  <% end %>
+  <%= render "form",cost_list: @cost_list,submit_label: "計算する" %>
 </main>
