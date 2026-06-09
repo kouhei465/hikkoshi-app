@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
   resource :mypage, only: %i[show]
 
-  resources :cost_lists, only: %i[new create show] do
+  resources :cost_lists, only: %i[new create show edit update] do
     collection do
       get :result
       post :save_session
