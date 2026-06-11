@@ -6,10 +6,18 @@
   <div class="bg-light p-4 mb-4">
     <h5>判断メモ</h5>
 
-    <% if @cost_list.memo.present? %>
-      <p><%= simple_format(@cost_list.memo) %></p>
-    <% else %>
-      <p class="text-muted mb-0">メモはまだありません</p>
+    <%= form_with model: @cost_list,
+                  url: update_memo_cost_list_path(@cost_list),
+                  method: :patch,
+                  data: { turbo: false } do |f| %>
+      <div class="mb-3">
+        <%= f.text_area :memo,
+                        class: "form-control",
+                        rows: 4,
+                        placeholder: "例：この内容で進める" %>
+      </div>
+
+      <%= f.submit "判断メモを保存する", class: "btn btn-primary" %>
     <% end %>
   </div>
 

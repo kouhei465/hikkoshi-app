@@ -6,6 +6,10 @@ Rails.application.routes.draw do
   resource :mypage, only: %i[show]
 
   resources :cost_lists, only: %i[new create show edit update] do
+    member do
+      patch :update_memo
+    end
+
     collection do
       get :result
       post :save_session
