@@ -41,8 +41,24 @@ class CostListsController < ApplicationController
     end
   end
 
+  def update_memo
+    @cost_list = current_user.cost_lists.find(params[:id])
+
+    if @cost_list.update(memo_params)
+      redirect_to cost_list_path(@cost_list), notice: "判断メモを更新しました"
+    else
+      calculate_result
+      flash.now[:alert] = "判断メモの更新に失敗しました"
+      render :show, status: :unprocessable_entity
+    end
+  end
+
   def save_session
     return redirect_to mypage_path, alert: "保存する費用データがありません" if session[:cost_list_params].blank?
+
+    memo = params.dig(:cost_list, :memo)
+    session[:cost_list_params]["memo"] = memo if memo
+
     return redirect_to login_path, alert: "保存するにはログインしてください" unless logged_in?
 
     @cost_list = current_user.cost_lists.build(session[:cost_list_params])
@@ -61,8 +77,13 @@ class CostListsController < ApplicationController
   def cost_list_params
     params.require(:cost_list).permit(
       :budget,
+      :memo,
       cost_items_attributes: %i[id name category amount status]
     )
+  end
+
+  def memo_params
+    params.require(:cost_list).permit(:memo)
   end
 
   def calculate_result
