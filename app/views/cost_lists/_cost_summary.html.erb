@@ -31,4 +31,28 @@
       </div>
     </div>
   <% end %>
+
+  <div class="mt-4">
+    <h5>ステータス別確認</h5>
+
+    <% CostItem.statuses.keys.each do |status| %>
+      <% items = cost_list.cost_items.select { |item| item.status == status } %>
+
+      <div class="mb-3">
+        <h6><%= t("enums.cost_item.status.#{status}") %></h6>
+
+        <% if items.present? %>
+          <ul class="mb-0">
+            <% items.each do |item| %>
+              <li>
+                <%= item.name %>（<%= number_to_currency(item.amount.to_i, unit: "円", precision: 0, format: "%n%u") %>）
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-muted mb-0">該当する項目はありません</p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 </div>

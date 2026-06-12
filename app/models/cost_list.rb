@@ -3,5 +3,5 @@ class CostList < ApplicationRecord
 
   has_many :cost_items, dependent: :destroy
 
-  accepts_nested_attributes_for :cost_items
+  accepts_nested_attributes_for :cost_items, allow_destroy: true
 end

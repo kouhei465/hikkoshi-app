@@ -1,5 +1,8 @@
 <main class="container py-5">
   <h2 class="mb-4">費用入力</h2>
 
-  <%= render "form",cost_list: @cost_list,submit_label: "計算する" %>
+  <%= render "form",
+             cost_list: @cost_list,
+             submit_label: "計算する",
+             show_estimate: true %>
 </main>
