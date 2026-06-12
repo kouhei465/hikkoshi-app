@@ -1,0 +1,62 @@
+<% name_options = CostItem.name_options_for(item_form.object.category) %>
+<% name_options = name_options | [item_form.object.name] if item_form.object.name.present? %>
+
+<div class="border rounded p-3 mb-3 bg-white"
+     data-nested-form-target="item"
+     data-category="<%= item_form.object.category %>"
+     data-reference-estimate-amount="<%= item_form.object.reference_estimate_amount %>"
+     data-new-record="<%= item_form.object.new_record? %>">
+  <%= item_form.hidden_field :id if item_form.object.persisted? %>
+  <%= item_form.hidden_field :category, data: { nested_form_target: "categoryField" } %>
+  <%= item_form.hidden_field :_destroy, value: 0, data: { nested_form_target: "destroyField" } %>
+
+  <div class="row g-3 align-items-start">
+    <div class="col-md-4">
+      <%= item_form.label :name, "費用の種類", class: "form-label" %>
+      <%= item_form.select :name,
+                           name_options.map { |name| [name, name] },
+                           {},
+                           class: "form-select",
+                           data: {
+                             nested_form_target: "nameSelect",
+                             action: "change->nested-form#handleNameChange"
+                           } %>
+    </div>
+
+    <div class="col-md-3">
+      <%= item_form.label :amount, "金額", class: "form-label" %>
+      <%= item_form.number_field :amount,
+                                 class: "form-control",
+                                 data: { nested_form_target: "amountInput" } %>
+
+      <% if show_estimate %>
+        <p class="text-muted small mt-2 mb-0">
+          参考概算：<%= estimate_text %>
+        </p>
+      <% end %>
+    </div>
+
+    <div class="col-md-3">
+      <%= item_form.label :status, "状態", class: "form-label" %>
+      <%= item_form.select :status,
+                           CostItem.statuses.keys.map { |key| [t("enums.cost_item.status.#{key}"), key] },
+                           {},
+                           class: "form-select",
+                           data: {
+                             nested_form_target: "statusSelect",
+                             action: "change->nested-form#applyEstimateAmount"
+                           } %>
+
+      <p class="text-muted small mt-2 mb-0 d-none" data-nested-form-target="rentEstimateMessage">
+        家賃を入力すると概算を反映できます
+      </p>
+    </div>
+
+    <div class="col-md-2 d-grid">
+      <%= button_tag "- 削除",
+                     type: "button",
+                     class: "btn btn-outline-danger mt-md-4",
+                     data: { action: "nested-form#remove" } %>
+    </div>
+  </div>
+</div>

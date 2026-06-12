@@ -1,7 +1,10 @@
 <main class="container py-5">
   <h2 class="mb-4">費用編集</h2>
 
-  <%= render "form",cost_list: @cost_list,submit_label: "更新する" %>
+  <%= render "form",
+             cost_list: @cost_list,
+             submit_label: "更新する",
+             show_estimate: false %>
 
   <div class="mt-3">
     <%= link_to "詳細に戻る", cost_list_path(@cost_list), class: "btn btn-secondary" %>

@@ -1,10 +1,7 @@
 class CostListsController < ApplicationController
   def new
     @cost_list = CostList.new
-    @cost_list.cost_items.build(name: "賃貸費用", category: :rent)
-    @cost_list.cost_items.build(name: "引っ越し業者費用", category: :moving)
-    @cost_list.cost_items.build(name: "家具家電費用", category: :furniture)
-    @cost_list.cost_items.build(name: "その他費用", category: :other)
+    build_initial_cost_items
   end
 
   def create
@@ -27,7 +24,6 @@ class CostListsController < ApplicationController
 
   def edit
     @cost_list = current_user.cost_lists.find(params[:id])
-    build_missing_cost_items
   end
 
   def update
@@ -36,7 +32,6 @@ class CostListsController < ApplicationController
     if @cost_list.update(cost_list_params)
       redirect_to cost_list_path(@cost_list), notice: "費用内容を更新しました"
     else
-      build_missing_cost_items
       render :edit, status: :unprocessable_entity
     end
   end
@@ -78,7 +73,7 @@ class CostListsController < ApplicationController
     params.require(:cost_list).permit(
       :budget,
       :memo,
-      cost_items_attributes: %i[id name category amount status]
+      cost_items_attributes: %i[id name category amount status _destroy]
     )
   end
 
@@ -92,22 +87,11 @@ class CostListsController < ApplicationController
     @difference = @budget_amount - @total_amount
   end
 
-  def build_missing_cost_items
-    default_items = [
-      { name: "賃貸費用", category: :rent },
-      { name: "引っ越し業者費用", category: :moving },
-      { name: "家具家電費用", category: :furniture },
-      { name: "その他費用", category: :other }
-    ]
-
-    existing_categories = @cost_list.cost_items.map(&:category)
-
-    default_items.each do |item|
-      next if existing_categories.include?(item[:category].to_s)
-
+  def build_initial_cost_items
+    CostItem.categories.keys.each do |category|
       @cost_list.cost_items.build(
-        name: item[:name],
-        category: item[:category],
+        name: CostItem.name_options_for(category).first,
+        category: category,
         status: :unchecked
       )
     end
