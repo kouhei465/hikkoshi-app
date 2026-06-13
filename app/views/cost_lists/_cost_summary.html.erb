@@ -1,58 +1,42 @@
-<div class="bg-light p-4 mb-4">
-  <h5>費用内訳</h5>
+<div class="bg-white border rounded p-3 mb-4">
+  <h5>費用合計</h5>
 
-  <% cost_list.cost_items.each do |item| %>
-    <div class="d-flex justify-content-between border-bottom py-2">
-      <div>
-        <strong><%= item.name %></strong>
+  <p class="fs-4 fw-bold mb-2">
+    <%= number_to_currency(total_amount, unit: "円", precision: 0, format: "%n%u") %>
+  </p>
 
-        <% if editable_status && cost_list.persisted? %>
-          <%= form_with model: item,
-                        url: update_status_cost_list_cost_item_path(cost_list, item),
-                        method: :patch,
-                        local: true,
-                        class: "d-inline-flex align-items-center gap-2 ms-2" do |f| %>
-            <%= f.select :status,
-                         CostItem.statuses.keys.map { |status| [t("enums.cost_item.status.#{status}"), status] },
-                         {},
-                         class: "form-select form-select-sm" %>
+  <% if cost_list.budget.blank? %>
+    <p class="text-muted mb-0">
+      予算を入力すると、費用合計と比較できます。
+    </p>
+  <% elsif difference >= 0 %>
+    <p class="text-success mb-0">
+      予算内に収まっています。残り
+      <%= number_to_currency(difference, unit: "円", precision: 0, format: "%n%u") %>
+      です。
+    </p>
+  <% else %>
+    <p class="text-danger mb-2">
+      予算を
+      <%= number_to_currency(difference.abs, unit: "円", precision: 0, format: "%n%u") %>
+      オーバーしています。
+    </p>
 
-            <%= f.submit "更新", class: "btn btn-sm btn-outline-primary" %>
-          <% end %>
-        <% else %>
-          <span class="ms-2">
-            <%= t("enums.cost_item.status.#{item.status}") %>
-          </span>
-        <% end %>
-      </div>
+    <% unchecked_items = cost_list.cost_items.select(&:unchecked?) %>
+    <% estimated_items = cost_list.cost_items.select(&:estimated?) %>
 
-      <div>
-        <%= number_to_currency(item.amount.to_i, unit: "円", precision: 0, format: "%n%u") %>
-      </div>
-    </div>
-  <% end %>
-
-  <div class="mt-4">
-    <h5>ステータス別確認</h5>
-
-    <% CostItem.statuses.keys.each do |status| %>
-      <% items = cost_list.cost_items.select { |item| item.status == status } %>
-
-      <div class="mb-3">
-        <h6><%= t("enums.cost_item.status.#{status}") %></h6>
-
-        <% if items.present? %>
-          <ul class="mb-0">
-            <% items.each do |item| %>
-              <li>
-                <%= item.name %>（<%= number_to_currency(item.amount.to_i, unit: "円", precision: 0, format: "%n%u") %>）
-              </li>
-            <% end %>
-          </ul>
-        <% else %>
-          <p class="text-muted mb-0">該当する項目はありません</p>
-        <% end %>
-      </div>
+    <% if unchecked_items.present? %>
+      <p class="mb-0">
+        未確認の費用項目があります。まずは未確認項目の金額を確認してください。
+      </p>
+    <% elsif estimated_items.present? %>
+      <p class="mb-0">
+        概算の費用項目が含まれています。正式な金額に更新すると総額が変わる可能性があります。
+      </p>
+    <% else %>
+      <p class="mb-0">
+        確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。
+      </p>
     <% end %>
-  </div>
+  <% end %>
 </div>
