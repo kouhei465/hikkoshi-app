@@ -16,10 +16,12 @@
       です。
     </p>
   <% else %>
-    <p class="text-danger mb-2">
+    <p class="mb-2">
       予算を
-      <%= number_to_currency(difference.abs, unit: "円", precision: 0, format: "%n%u") %>
-      オーバーしています。
+      <span class="text-danger">
+        <%= number_to_currency(difference.abs, unit: "円", precision: 0, format: "%n%u") %>
+        オーバーしています。
+      </span>
     </p>
 
     <% unchecked_items = cost_list.cost_items.select(&:unchecked?) %>
@@ -36,6 +38,19 @@
     <% else %>
       <p class="mb-0">
         確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。
+      </p>
+    <% end %>
+
+    <% if largest_category.present? %>
+      <% category, amount = largest_category %>
+
+      <p class="mt-2 mb-0">
+        特に
+        <strong><%= t("enums.cost_item.category.#{category}") %></strong>
+        が大きくなっています。
+        このカテゴリは
+        <%= number_to_currency(amount, unit: "円", precision: 0, format: "%n%u") %>
+        です。
       </p>
     <% end %>
   <% end %>

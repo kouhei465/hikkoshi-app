@@ -1,7 +1,14 @@
 <main class="container py-5">
   <h2 class="mb-4">計算結果</h2>
 
-  <%= render "cost_summary",cost_list: @cost_list,total_amount: @total_amount,budget_amount: @budget_amount,difference: @difference,editable_status: false %>
+  <%= render "cost_summary",
+             cost_list: @cost_list,
+             total_amount: @total_amount,
+             budget_amount: @budget_amount,
+             difference: @difference,
+             category_totals: @category_totals,
+             largest_category: @largest_category,
+             editable_status: false %>
 
   <%= form_with model: @cost_list,
                 url: save_session_cost_lists_path,
