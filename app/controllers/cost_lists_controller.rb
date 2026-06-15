@@ -82,9 +82,23 @@ class CostListsController < ApplicationController
   end
 
   def calculate_result
-    @total_amount = @cost_list.cost_items.sum { |item| item.amount.to_i }
+    cost_items = @cost_list.cost_items.reject(&:marked_for_destruction?)
+
+    @total_amount = cost_items.sum { |item| item.amount.to_i }
     @budget_amount = @cost_list.budget.to_i
     @difference = @budget_amount - @total_amount
+
+    @category_totals = CostItem.categories.keys.to_h do |category|
+      category_total = cost_items
+                       .select { |item| item.category == category }
+                       .sum { |item| item.amount.to_i }
+
+      [ category, category_total ]
+    end
+
+    @largest_category = @category_totals
+                        .select { |_category, amount| amount.positive? }
+                        .max_by { |_category, amount| amount }
   end
 
   def build_initial_cost_items
