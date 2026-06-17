@@ -1,57 +1,146 @@
-<div class="bg-white border rounded p-3 mb-4">
-  <h5>費用合計</h5>
+<% has_estimated_items = cost_list.cost_items.any?(&:estimated?) %>
+<% display_items = cost_list.cost_items.select { |item| item.amount.to_i.positive? } %>
 
-  <p class="fs-4 fw-bold mb-2">
-    <%= number_to_currency(total_amount, unit: "円", precision: 0, format: "%n%u") %>
-  </p>
+<div class="row mb-4">
+  <div class="col-md-6 mb-3 mb-md-0">
+    <div class="bg-white border rounded p-3 h-100">
+      <h5>費用合計</h5>
 
-  <% if cost_list.budget.blank? %>
-    <p class="text-muted mb-0">
-      予算を入力すると、費用合計と比較できます。
-    </p>
-  <% elsif difference >= 0 %>
-    <p class="text-success mb-0">
-      予算内に収まっています。残り
-      <%= number_to_currency(difference, unit: "円", precision: 0, format: "%n%u") %>
-      です。
-    </p>
-  <% else %>
-    <p class="mb-2">
-      予算を
-      <span class="text-danger">
-        <%= number_to_currency(difference.abs, unit: "円", precision: 0, format: "%n%u") %>
-        オーバーしています。
-      </span>
-    </p>
-
-    <% unchecked_items = cost_list.cost_items.select(&:unchecked?) %>
-    <% estimated_items = cost_list.cost_items.select(&:estimated?) %>
-
-    <% if unchecked_items.present? %>
-      <p class="mb-0">
-        未確認の費用項目があります。まずは未確認項目の金額を確認してください。
+      <p class="fs-4 fw-bold mb-2">
+        <%= number_to_currency(total_amount, unit: "円", precision: 0, format: "%n%u") %>
       </p>
-    <% elsif estimated_items.present? %>
-      <p class="mb-0">
-        概算の費用項目が含まれています。正式な金額に更新すると総額が変わる可能性があります。
-      </p>
-    <% else %>
-      <p class="mb-0">
-        確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。
-      </p>
-    <% end %>
 
-    <% if largest_category.present? %>
-      <% category, amount = largest_category %>
+      <% if cost_list.budget.blank? %>
+        <p class="text-muted mb-0">
+          予算を入力すると、費用合計と比較できます。
+        </p>
+      <% elsif difference >= 0 %>
+        <p class="text-success mb-0">
+          予算内に収まっています。残り
+          <%= number_to_currency(difference, unit: "円", precision: 0, format: "%n%u") %>
+          です。
+        </p>
+      <% else %>
+        <p class="mb-2">
+          予算を
+          <span class="text-danger">
+            <%= number_to_currency(difference.abs, unit: "円", precision: 0, format: "%n%u") %>
+            オーバーしています。
+          </span>
+        </p>
 
-      <p class="mt-2 mb-0">
-        特に
-        <strong><%= t("enums.cost_item.category.#{category}") %></strong>
-        が大きくなっています。
-        このカテゴリは
-        <%= number_to_currency(amount, unit: "円", precision: 0, format: "%n%u") %>
-        です。
+        <% unchecked_items = cost_list.cost_items.select(&:unchecked?) %>
+        <% estimated_items = cost_list.cost_items.select(&:estimated?) %>
+
+        <% if unchecked_items.present? %>
+          <p class="mb-0">
+            未確認の費用項目があります。まずは未確認項目の金額を確認してください。
+          </p>
+        <% elsif estimated_items.present? %>
+          <p class="mb-0">
+            概算の費用項目が含まれています。正式な金額に更新すると総額が変わる可能性があります。
+          </p>
+        <% else %>
+          <p class="mb-0">
+            確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。
+          </p>
+        <% end %>
+
+        <% if largest_category.present? %>
+          <% category, amount = largest_category %>
+
+          <p class="mt-2 mb-0">
+            特に
+            <strong><%= t("enums.cost_item.category.#{category}") %></strong>
+            が大きくなっています。
+            このカテゴリは
+            <%= number_to_currency(amount, unit: "円", precision: 0, format: "%n%u") %>
+            です。
+          </p>
+        <% end %>
+      <% end %>
+
+      <div class="mt-4">
+        <h5>費用内訳</h5>
+
+        <% CostItem.categories.keys.each do |category| %>
+          <% category_items = display_items.select { |item| item.category == category } %>
+
+          <details class="mb-2" open>
+            <summary class="fw-bold">
+              <%= t("enums.cost_item.category.#{category}") %>
+            </summary>
+
+            <div class="mt-2">
+              <% if category_items.present? %>
+                <% category_items.each do |item| %>
+                  <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 border-bottom py-2">
+                    <div>
+                      <div class="fw-semibold"><%= item.name %></div>
+
+                      <% if editable_status && cost_list.persisted? %>
+                        <%= form_with model: item,
+                                      url: update_status_cost_list_cost_item_path(cost_list, item),
+                                      method: :patch,
+                                      class: "d-flex gap-2 mt-1",
+                                      data: { turbo: false } do |f| %>
+                          <%= f.select :status,
+                                       CostItem.statuses.keys.map { |key| [t("enums.cost_item.status.#{key}"), key] },
+                                       {},
+                                       class: "form-select form-select-sm" %>
+                          <%= f.submit "更新", class: "btn btn-primary btn-sm" %>
+                        <% end %>
+                      <% else %>
+                        <div class="text-muted small">
+                          <%= t("enums.cost_item.status.#{item.status}") %>
+                        </div>
+                      <% end %>
+                    </div>
+
+                    <div class="text-sm-end fw-semibold">
+                      <%= number_to_currency(item.amount.to_i, unit: "円", precision: 0, format: "%n%u") %>
+                    </div>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-muted small mb-0">
+                  該当する項目はありません
+                </p>
+              <% end %>
+            </div>
+          </details>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="bg-white border rounded p-3 h-100">
+      <h5>費用内訳グラフ</h5>
+
+      <p class="text-muted small mb-3">
+        カテゴリごとの費用割合を表示しています。
       </p>
-    <% end %>
-  <% end %>
+
+      <% if total_amount.zero? %>
+        <p class="text-muted mb-0">
+          グラフ表示できる費用がありません
+        </p>
+      <% else %>
+        <div class="position-relative mx-auto" style="height: 280px; max-width: 360px;">
+          <canvas
+            data-controller="cost-breakdown-chart"
+            data-cost-breakdown-chart-labels-value="<%= category_totals.keys.map { |category| t("enums.cost_item.category.#{category}") }.to_json %>"
+            data-cost-breakdown-chart-amounts-value="<%= category_totals.values.to_json %>">
+          </canvas>
+        </div>
+
+        <% if has_estimated_items %>
+          <p class="text-muted small mt-3 mb-0">
+            概算の費用項目が含まれているため、正式な金額に更新すると内訳が変わる可能性があります。
+          </p>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
 </div>
