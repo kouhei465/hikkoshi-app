@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   root "top#index"
 
+  get "terms", to: "static_pages#terms"
+  get "privacy", to: "static_pages#privacy"
+
   resources :users, only: %i[new create]
 
   resource :mypage, only: %i[show]
