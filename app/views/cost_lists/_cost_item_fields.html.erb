@@ -1,11 +1,9 @@
-<% name_options = CostItem.name_options_for(item_form.object.category) %>
-<% name_options = name_options | [item_form.object.name] if item_form.object.name.present? %>
-
 <div class="border rounded p-3 mb-3 bg-white"
      data-nested-form-target="item"
      data-category="<%= item_form.object.category %>"
      data-reference-estimate-amount="<%= item_form.object.reference_estimate_amount %>"
      data-new-record="<%= item_form.object.new_record? %>">
+  <%# 既存項目の更新・削除判定に必要な値をフォームに保持 %>
   <%= item_form.hidden_field :id if item_form.object.persisted? %>
   <%= item_form.hidden_field :category, data: { nested_form_target: "categoryField" } %>
   <%= item_form.hidden_field :_destroy, value: 0, data: { nested_form_target: "destroyField" } %>
@@ -13,14 +11,14 @@
   <div class="row g-3 align-items-start">
     <div class="col-md-4">
       <%= item_form.label :name, "費用の種類", class: "form-label" %>
-      <%= item_form.select :name,
-                           name_options.map { |name| [name, name] },
-                           {},
-                           class: "form-select",
-                           data: {
-                             nested_form_target: "nameSelect",
-                             action: "change->nested-form#handleNameChange"
-                           } %>
+      <%= item_form.text_field :name,
+                               class: "form-control",
+                               list: "cost-item-name-options-#{item_form.object.category}",
+                               required: true,
+                               data: {
+                                 nested_form_target: "nameSelect",
+                                 action: "change->nested-form#handleNameChange"
+                               } %>
     </div>
 
     <div class="col-md-3">
@@ -30,9 +28,7 @@
                                  data: { nested_form_target: "amountInput" } %>
 
       <% if show_estimate %>
-        <p class="text-muted small mt-2 mb-0">
-          参考概算：<%= estimate_text %>
-        </p>
+        <p class="text-muted small mt-2 mb-0">参考概算：<%= estimate_text %></p>
       <% end %>
     </div>
 
@@ -47,8 +43,9 @@
                              action: "change->nested-form#applyEstimateAmount"
                            } %>
 
-      <p class="text-muted small mt-2 mb-0 d-none" data-nested-form-target="rentEstimateMessage">
-        家賃を入力すると概算を反映できます
+      <p class="text-muted small mt-2 mb-0 d-none" data-nested-form-target="rentEstimateMessage">家賃を入力すると概算を反映できます</p>
+      <p class="text-muted small mt-2 mb-0 d-none" data-nested-form-target="customNameEstimateMessage">
+        この費用名は候補外のため、概算金額を自動入力できません。金額を手入力してください。
       </p>
     </div>
 
@@ -59,4 +56,30 @@
                      data: { action: "nested-form#remove" } %>
     </div>
   </div>
+
+  <% if item_form.object.category == "moving" %>
+    <div class="mt-3 d-none" data-nested-form-target="movingEstimateFields">
+      <p class="text-muted small mb-2">出発地と到着地を選択すると、引っ越し業者費用の概算を反映できます。</p>
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label">出発地</label>
+          <select class="form-select"
+                  data-nested-form-target="movingFromPrefecture"
+                  data-action="change->nested-form#applyMovingEstimate">
+            <%= options_for_select([["選択してください", ""]] + CostItem::PREFECTURES.map { |prefecture| [prefecture, prefecture] }) %>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">到着地</label>
+          <select class="form-select"
+                  data-nested-form-target="movingToPrefecture"
+                  data-action="change->nested-form#applyMovingEstimate">
+            <%= options_for_select([["選択してください", ""]] + CostItem::PREFECTURES.map { |prefecture| [prefecture, prefecture] }) %>
+          </select>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </div>

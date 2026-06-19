@@ -9,6 +9,7 @@
     <%= f.number_field :budget, class: "form-control" %>
   </div>
 
+  <%# 費用項目をカテゴリごとに入力できるように表示 %>
   <% CostItem.categories.keys.each do |category| %>
     <% category_items = cost_list.cost_items.select { |item| item.category == category } %>
     <% new_item = CostItem.new(category: category, name: CostItem.name_options_for(category).first, status: :unchecked) %>
@@ -16,6 +17,12 @@
 
     <section class="mb-4">
       <h5><%= t("enums.cost_item.category.#{category}") %></h5>
+
+      <datalist id="cost-item-name-options-<%= category %>">
+        <% CostItem.name_options_for(category).each do |name| %>
+          <option value="<%= name %>"></option>
+        <% end %>
+      </datalist>
 
       <div data-nested-form-target="container" data-category="<%= category %>">
         <% category_items.each do |cost_item| %>
@@ -28,6 +35,7 @@
         <% end %>
       </div>
 
+      <%# JavaScriptで追加する費用項目のテンプレート %>
       <template data-nested-form-target="template" data-category="<%= category %>">
         <%= f.fields_for :cost_items, new_item, child_index: "NEW_RECORD_#{category}" do |item_form| %>
           <%= render "cost_item_fields",
