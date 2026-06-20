@@ -35,7 +35,6 @@
         <% end %>
       </div>
 
-      <%# JavaScriptで追加する費用項目のテンプレート %>
       <template data-nested-form-target="template" data-category="<%= category %>">
         <%= f.fields_for :cost_items, new_item, child_index: "NEW_RECORD_#{category}" do |item_form| %>
           <%= render "cost_item_fields",
