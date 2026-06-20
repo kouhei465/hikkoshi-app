@@ -14,7 +14,6 @@
       <%= item_form.text_field :name,
                                class: "form-control",
                                list: "cost-item-name-options-#{item_form.object.category}",
-                               required: true,
                                data: {
                                  nested_form_target: "nameSelect",
                                  action: "change->nested-form#handleNameChange"

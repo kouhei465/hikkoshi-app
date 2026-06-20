@@ -12,7 +12,7 @@
   <%# 費用項目をカテゴリごとに入力できるように表示 %>
   <% CostItem.categories.keys.each do |category| %>
     <% category_items = cost_list.cost_items.select { |item| item.category == category } %>
-    <% new_item = CostItem.new(category: category, name: CostItem.name_options_for(category).first, status: :unchecked) %>
+    <% new_item = CostItem.new(category: category, status: :unchecked) %>
     <% estimate_text = CostItem::REFERENCE_ESTIMATES[category] %>
 
     <section class="mb-4">

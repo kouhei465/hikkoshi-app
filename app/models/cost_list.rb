@@ -3,5 +3,15 @@ class CostList < ApplicationRecord
 
   has_many :cost_items, dependent: :destroy
 
-  accepts_nested_attributes_for :cost_items, allow_destroy: true
+  accepts_nested_attributes_for :cost_items,
+                                allow_destroy: true,
+                                reject_if: :blank_cost_item?
+
+  private
+
+  def blank_cost_item?(attributes)
+    ActiveModel::Type::Boolean.new.cast(attributes["_destroy"]) == false &&
+      attributes["name"].blank? &&
+      attributes["amount"].blank?
+  end
 end
