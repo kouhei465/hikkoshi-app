@@ -21,4 +21,29 @@ class CostItemTest < ActiveSupport::TestCase
 
     assert_nil cost_item.reference_estimate_amount
   end
+
+  test "allows a custom name outside the suggested options" do
+    cost_item = CostItem.new(
+      cost_list: cost_lists(:one),
+      name: "カーテン",
+      category: :furniture,
+      status: :confirmed,
+      amount: 5_000
+    )
+
+    assert cost_item.save
+  end
+
+  test "does not allow a blank name" do
+    cost_item = CostItem.new(
+      cost_list: cost_lists(:one),
+      name: "",
+      category: :furniture,
+      status: :confirmed,
+      amount: 5_000
+    )
+
+    assert_not cost_item.valid?
+    assert_includes cost_item.errors[:name], "を入力してください"
+  end
 end

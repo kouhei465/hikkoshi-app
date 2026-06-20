@@ -2,9 +2,10 @@
   <%= link_to "引っ越し費用管理アプリ", root_path, class: "fw-bold fs-4 text-dark text-decoration-none" %>
 
   <nav class="d-flex gap-4 align-items-center">
+    <%# ログイン状態に応じてヘッダーのリンクを切り替える %>
     <% if logged_in? %>
       <%= link_to current_user.name, mypage_path, class: "text-dark text-decoration-none" %>
-      <%= button_to "ログアウト",logout_path,method: :delete,class: "btn btn-link p-0 text-dark text-decoration-none" %>
+      <%= button_to "ログアウト", logout_path, method: :delete, class: "btn btn-link p-0 text-dark text-decoration-none" %>
     <% else %>
       <%= link_to "新規登録", new_user_path, class: "text-dark text-decoration-none" %>
       <%= link_to "ログイン", login_path, class: "text-dark text-decoration-none" %>

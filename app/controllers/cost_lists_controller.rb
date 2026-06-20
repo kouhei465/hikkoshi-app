@@ -104,7 +104,6 @@ class CostListsController < ApplicationController
   def build_initial_cost_items
     CostItem.categories.keys.each do |category|
       @cost_list.cost_items.build(
-        name: CostItem.name_options_for(category).first,
         category: category,
         status: :unchecked
       )

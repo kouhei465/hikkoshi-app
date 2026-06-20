@@ -1,5 +1,6 @@
 <main class="flex-grow-1 d-flex flex-column justify-content-center align-items-center pb-5">
   <div class="col-4">
+    <%# 入力内容にエラーがある場合は一覧で表示 %>
     <% if @user.errors.any? %>
       <div class="alert alert-danger">
         <ul class="mb-0">
@@ -16,11 +17,7 @@
       <%= f.password_field :password, placeholder: "パスワード", class: "form-control mb-3" %>
       <%= f.password_field :password_confirmation, placeholder: "パスワード（確認用）", class: "form-control mb-3" %>
 
-      <div class="text-center">
-        <%= f.submit "新規登録", class: "btn btn-primary" %>
-      </div>
+      <div class="text-center"><%= f.submit "新規登録", class: "btn btn-primary" %></div>
     <% end %>
   </div>
 </main>
-
-

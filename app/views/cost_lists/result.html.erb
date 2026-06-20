@@ -10,6 +10,7 @@
              largest_category: @largest_category,
              editable_status: false %>
 
+  <%# 計算結果と判断メモをログイン状態に応じて保存する %>
   <%= form_with model: @cost_list,
                 url: save_session_cost_lists_path,
                 method: :post,

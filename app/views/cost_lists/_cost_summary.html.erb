@@ -1,9 +1,12 @@
-<% has_estimated_items = cost_list.cost_items.any?(&:estimated?) %>
+<%# 金額が入力されている費用項目のみ表示対象にする %>
 <% display_items = cost_list.cost_items.select { |item| item.amount.to_i.positive? } %>
+<%# 表示対象の中に概算項目が含まれているかを判定 %>
+<% has_estimated_items = display_items.any?(&:estimated?) %>
 
 <div class="row mb-4">
   <div class="col-md-6 mb-3 mb-md-0">
     <div class="bg-white border rounded p-3 h-100">
+      <%# 費用合計と予算比較を表示 %>
       <h5>費用合計</h5>
 
       <p class="fs-4 fw-bold mb-2">
@@ -11,9 +14,7 @@
       </p>
 
       <% if cost_list.budget.blank? %>
-        <p class="text-muted mb-0">
-          予算を入力すると、費用合計と比較できます。
-        </p>
+        <p class="text-muted mb-0">予算を入力すると、費用合計と比較できます。</p>
       <% elsif difference >= 0 %>
         <p class="text-success mb-0">
           予算内に収まっています。残り
@@ -33,20 +34,15 @@
         <% estimated_items = cost_list.cost_items.select(&:estimated?) %>
 
         <% if unchecked_items.present? %>
-          <p class="mb-0">
-            未確認の費用項目があります。まずは未確認項目の金額を確認してください。
-          </p>
+          <p class="mb-0">未確認の費用項目があります。まずは未確認項目の金額を確認してください。</p>
         <% elsif estimated_items.present? %>
-          <p class="mb-0">
-            概算の費用項目が含まれています。正式な金額に更新すると総額が変わる可能性があります。
-          </p>
+          <p class="mb-0">概算の費用項目が含まれています。正式な金額に更新すると総額が変わる可能性があります。</p>
         <% else %>
-          <p class="mb-0">
-            確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。
-          </p>
+          <p class="mb-0">確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。</p>
         <% end %>
 
         <% if largest_category.present? %>
+          <%# 予算オーバー時に金額が大きいカテゴリを表示 %>
           <% category, amount = largest_category %>
 
           <p class="mt-2 mb-0">
@@ -61,6 +57,7 @@
       <% end %>
 
       <div class="mt-4">
+        <%# カテゴリ別の費用内訳を開閉表示 %>
         <h5>費用内訳</h5>
 
         <% CostItem.categories.keys.each do |category| %>
@@ -103,9 +100,7 @@
                   </div>
                 <% end %>
               <% else %>
-                <p class="text-muted small mb-0">
-                  該当する項目はありません
-                </p>
+                <p class="text-muted small mb-0">該当する項目はありません</p>
               <% end %>
             </div>
           </details>
@@ -116,16 +111,13 @@
 
   <div class="col-md-6">
     <div class="bg-white border rounded p-3 h-100">
+      <%# 費用カテゴリごとの割合を円グラフで表示 %>
       <h5>費用内訳グラフ</h5>
 
-      <p class="text-muted small mb-3">
-        カテゴリごとの費用割合を表示しています。
-      </p>
+      <p class="text-muted small mb-3">カテゴリごとの費用割合を表示しています。</p>
 
       <% if total_amount.zero? %>
-        <p class="text-muted mb-0">
-          グラフ表示できる費用がありません
-        </p>
+        <p class="text-muted mb-0">グラフ表示できる費用がありません</p>
       <% else %>
         <div class="position-relative mx-auto" style="height: 280px; max-width: 360px;">
           <canvas
@@ -136,9 +128,7 @@
         </div>
 
         <% if has_estimated_items %>
-          <p class="text-muted small mt-3 mb-0">
-            概算の費用項目が含まれているため、正式な金額に更新すると内訳が変わる可能性があります。
-          </p>
+          <p class="text-muted small mt-3 mb-0">概算の費用項目が含まれているため、正式な金額に更新すると内訳が変わる可能性があります。</p>
         <% end %>
       <% end %>
     </div>
