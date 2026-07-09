@@ -79,7 +79,7 @@
                         <%= form_with model: item,
                                       url: update_status_cost_list_cost_item_path(cost_list, item),
                                       method: :patch,
-                                      class: "d-flex gap-2 mt-1",
+                                      class: "d-grid gap-2 d-sm-flex mt-1",
                                       data: { turbo: false } do |f| %>
                           <%= f.select :status,
                                        CostItem.statuses.keys.map { |key| [t("enums.cost_item.status.#{key}"), key] },
@@ -119,7 +119,7 @@
       <% if total_amount.zero? %>
         <p class="text-muted mb-0">グラフ表示できる費用がありません</p>
       <% else %>
-        <div class="position-relative mx-auto" style="height: 280px; max-width: 360px;">
+        <div class="position-relative mx-auto w-100" style="height: 280px; max-width: 360px;">
           <canvas
             data-controller="cost-breakdown-chart"
             data-cost-breakdown-chart-labels-value="<%= category_totals.keys.map { |category| t("enums.cost_item.category.#{category}") }.to_json %>"

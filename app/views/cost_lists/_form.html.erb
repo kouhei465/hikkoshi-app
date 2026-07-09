@@ -44,14 +44,18 @@
         <% end %>
       </template>
 
-      <%= button_tag "+ #{t("enums.cost_item.category.#{category}")}を追加",
-                     type: "button",
-                     class: "btn btn-outline-primary btn-sm",
-                     data: { action: "nested-form#add", nested_form_category_param: category } %>
+      <div class="d-grid d-sm-block">
+        <%= button_tag "+ #{t("enums.cost_item.category.#{category}")}を追加",
+                       type: "button",
+                       class: "btn btn-outline-primary btn-sm",
+                       data: { action: "nested-form#add", nested_form_category_param: category } %>
+      </div>
     </section>
   <% end %>
 
-  <div class="text-center">
-    <%= f.submit submit_label, class: "btn btn-primary" %>
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-auto">
+      <%= f.submit submit_label, class: "btn btn-primary w-100" %>
+    </div>
   </div>
 <% end %>

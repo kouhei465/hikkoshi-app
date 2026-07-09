@@ -1,6 +1,9 @@
-<main class="flex-grow-1 d-flex flex-column justify-content-center align-items-center text-center">
-  <p class="fs-4 mb-4">引っ越しにかかる費用をまとめて整理できます</p>
+<main class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center text-center py-5">
+  <p class="fs-5 mb-4">引っ越しにかかる費用をまとめて整理できます</p>
 
-  <%= link_to "費用を入力して整理する", new_cost_list_path, class: "btn btn-primary btn-lg px-5" %>
+  <div class="row justify-content-center w-100">
+    <div class="col-12 col-sm-auto">
+      <%= link_to "費用を入力して整理する", new_cost_list_path, class: "btn btn-primary btn-lg w-100 px-4 px-sm-5" %>
+    </div>
+  </div>
 </main>
-

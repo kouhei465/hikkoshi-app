@@ -1,7 +1,7 @@
-<main class="container py-5">
+<main class="container py-4 py-md-5">
   <h2 class="mb-4">マイページ</h2>
 
-  <div class="mb-4">
+  <div class="d-grid d-sm-block mb-4">
     <%= link_to "新しく費用を計算する", new_cost_list_path, class: "btn btn-primary" %>
   </div>
 
@@ -10,13 +10,15 @@
   <%# 保存済み費用リストの有無で一覧表示を切り替える %>
   <% if @cost_lists.any? %>
     <% @cost_lists.each do |cost_list| %>
-      <div class="bg-light p-4 mb-3 d-flex justify-content-between align-items-center">
-        <div>
+      <div class="bg-light p-3 p-md-4 mb-3 d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3">
+        <div class="text-break">
           <strong><%= cost_list.title %></strong>
           <div class="text-muted"><%= cost_list.created_at.strftime("%Y/%m/%d %H:%M") %></div>
         </div>
 
-        <%= link_to "詳細を見る", cost_list_path(cost_list), class: "btn btn-outline-primary" %>
+        <div class="d-grid d-sm-block">
+          <%= link_to "詳細を見る", cost_list_path(cost_list), class: "btn btn-outline-primary" %>
+        </div>
       </div>
     <% end %>
   <% else %>

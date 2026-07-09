@@ -1,4 +1,4 @@
-<div class="border rounded p-3 mb-3 bg-white"
+<div class="border rounded p-2 p-sm-3 mb-3 bg-white"
      data-nested-form-target="item"
      data-category="<%= item_form.object.category %>"
      data-reference-estimate-amount="<%= item_form.object.reference_estimate_amount %>"
@@ -8,7 +8,7 @@
   <%= item_form.hidden_field :category, data: { nested_form_target: "categoryField" } %>
   <%= item_form.hidden_field :_destroy, value: 0, data: { nested_form_target: "destroyField" } %>
 
-  <div class="row g-3 align-items-start">
+  <div class="row g-2 g-md-3 align-items-start">
     <div class="col-md-4">
       <%= item_form.label :name, "費用の種類", class: "form-label" %>
       <%= item_form.text_field :name,
