@@ -11,7 +11,7 @@ class UsersController < ApplicationController
 
       if session[:cost_list_params].present?
         cost_list = @user.cost_lists.build(session[:cost_list_params])
-        cost_list.title = "引っ越し費用リスト"
+        cost_list.title = "引っ越し費用リスト" if cost_list.title.blank?
 
         if cost_list.save
           session.delete(:cost_list_params)

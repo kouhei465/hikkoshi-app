@@ -35,5 +35,13 @@
 
       <%= link_to "もう一度計算する", new_cost_list_path, class: "btn btn-primary" %>
     </div>
+
+    <div class="mt-4">
+      <%= f.label :title, "リスト名（任意）", class: "form-label" %>
+      <%= f.text_field :title,
+                       class: "form-control",
+                       placeholder: "例：A物件の費用" %>
+      <div class="form-text">未入力の場合は「引っ越し費用リスト」として保存されます。</div>
+    </div>
   <% end %>
 </main>

@@ -12,13 +12,25 @@ RSpec.describe CostList, type: :model do
 
   describe "バリデーション" do
     it "ユーザーが設定されている場合は有効になる" do
-      cost_list = described_class.new(user: user)
+      cost_list = described_class.new(user: user, title: "テスト用費用リスト")
 
       expect(cost_list).to be_valid
     end
 
     it "ユーザーが設定されていない場合は無効になる" do
-      cost_list = described_class.new(user: nil)
+      cost_list = described_class.new(user: nil, title: "テスト用費用リスト")
+
+      expect(cost_list).to be_invalid
+    end
+
+    it "タイトルが空の場合は無効になる" do
+      cost_list = described_class.new(user: user, title: "")
+
+      expect(cost_list).to be_invalid
+    end
+
+    it "タイトルが50文字を超える場合は無効になる" do
+      cost_list = described_class.new(user: user, title: "あ" * 51)
 
       expect(cost_list).to be_invalid
     end

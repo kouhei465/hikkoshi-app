@@ -1,5 +1,6 @@
 <main class="container py-4 py-md-5">
-  <h2 class="mb-4">費用詳細</h2>
+  <h2 class="mb-1"><%= @cost_list.title %></h2>
+  <p class="text-muted mb-4">費用詳細</p>
 
   <%= render "cost_summary",
              cost_list: @cost_list,

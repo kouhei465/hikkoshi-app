@@ -10,16 +10,49 @@
   <%# 保存済み費用リストの有無で一覧表示を切り替える %>
   <% if @cost_lists.any? %>
     <% @cost_lists.each do |cost_list| %>
-      <div class="bg-light p-3 p-md-4 mb-3 d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3">
-        <div class="text-break">
+      <div class="bg-light p-3 p-md-4 mb-3 d-flex justify-content-between align-items-center gap-3">
+        <div class="text-break flex-grow-1">
           <strong><%= cost_list.title %></strong>
           <div class="text-muted"><%= cost_list.created_at.strftime("%Y/%m/%d %H:%M") %></div>
         </div>
 
-        <div class="d-grid d-sm-block">
-          <%= link_to "詳細を見る", cost_list_path(cost_list), class: "btn btn-outline-primary" %>
+        <div class="dropdown flex-shrink-0">
+          <%= button_tag "︙",
+                         type: "button",
+                         class: "btn btn-outline-secondary",
+                         aria: {
+                           label: "費用リストの操作メニュー",
+                           expanded: "false"
+                         },
+                         data: { bs_toggle: "dropdown" } %>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><%= link_to "詳細を見る", cost_list_path(cost_list), class: "dropdown-item" %></li>
+            <li><%= link_to "編集する", edit_cost_list_path(cost_list), class: "dropdown-item" %></li>
+            <li>
+              <%= button_tag "名前を変更",
+                             type: "button",
+                             class: "dropdown-item",
+                             data: {
+                               bs_toggle: "modal",
+                               bs_target: "#rename-cost-list-modal-#{cost_list.id}"
+                             } %>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <%= link_to "削除する",
+                          cost_list_path(cost_list),
+                          data: {
+                            turbo_method: :delete,
+                            turbo_confirm: "この費用リストを削除しますか？"
+                          },
+                          class: "dropdown-item text-danger" %>
+            </li>
+          </ul>
         </div>
       </div>
+
+      <%= render "rename_cost_list_modal", cost_list: cost_list %>
     <% end %>
   <% else %>
     <p>保存済みの費用リストはまだありません。</p>

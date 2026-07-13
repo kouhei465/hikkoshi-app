@@ -6,6 +6,7 @@ RSpec.describe "費用リスト", type: :request do
       get new_cost_list_path
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("リスト名")
     end
   end
 
@@ -34,6 +35,23 @@ RSpec.describe "費用リスト", type: :request do
       get result_cost_lists_path
 
       expect(response).to redirect_to(new_cost_list_path)
+    end
+
+    it "保存用の任意のリスト名入力欄を表示すること" do
+      post cost_lists_path, params: {
+        cost_list: {
+          budget: 300000,
+          cost_items_attributes: {}
+        }
+      }
+
+      get result_cost_lists_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("リスト名（任意）")
+      expect(response.body).to include("例：A物件の費用")
+      expect(response.body).to include("未入力の場合は「引っ越し費用リスト」として保存されます。")
+      expect(response.body).to include(save_session_cost_lists_path)
     end
   end
 
@@ -65,14 +83,35 @@ RSpec.describe "費用リスト", type: :request do
       get cost_list_path(cost_list)
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).to include("引っ越し費用リスト")
       expect(response.body).to include("費用詳細")
       expect(response.body).to include("判断メモ")
       expect(response.body).to include("家賃")
     end
   end
 
+  describe "GET /cost_lists/:id/edit" do
+    it "所有者の編集画面にリスト名と現在のタイトルを表示すること" do
+      user = User.create!(
+        name: "編集画面テストユーザー",
+        email: "edit-view@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      cost_list = user.cost_lists.create!(title: "A物件の費用", budget: 300000)
+
+      post login_path, params: { email: user.email, password: "password" }
+
+      get edit_cost_list_path(cost_list)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("リスト名")
+      expect(response.body).to include("A物件の費用")
+    end
+  end
+
   describe "PATCH /cost_lists/:id" do
-    it "所有者であるログインユーザーが保存済み費用リストを更新できること" do
+    it "所有者がタイトル・予算・費用項目をまとめて更新できること" do
       user = User.create!(
         name: "更新テストユーザー",
         email: "update@example.com",
@@ -98,6 +137,7 @@ RSpec.describe "費用リスト", type: :request do
 
       patch cost_list_path(cost_list), params: {
         cost_list: {
+          title: "更新後の費用リスト",
           budget: 350_000,
           cost_items_attributes: {
             "0" => {
@@ -117,8 +157,55 @@ RSpec.describe "費用リスト", type: :request do
       cost_item.reload
 
       expect(cost_list.budget).to eq(350_000)
+      expect(cost_list.title).to eq("更新後の費用リスト")
       expect(cost_item.amount).to eq(80_000)
       expect(cost_item.status).to eq("confirmed")
+    end
+
+    it "タイトルが空欄の場合は更新しないこと" do
+      user = User.create!(
+        name: "空タイトル更新テストユーザー",
+        email: "blank-title-update@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      cost_list = user.cost_lists.create!(title: "変更前のリスト名", budget: 300000)
+
+      post login_path, params: { email: user.email, password: "password" }
+
+      patch cost_list_path(cost_list), params: {
+        cost_list: { title: "", budget: 400000 }
+      }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(cost_list.reload.title).to eq("変更前のリスト名")
+      expect(cost_list.budget).to eq(300000)
+    end
+
+    it "他人の費用リストを更新できないこと" do
+      owner = User.create!(
+        name: "編集対象の所有者",
+        email: "edit-owner@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      other_user = User.create!(
+        name: "編集を試みるユーザー",
+        email: "edit-other@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      cost_list = owner.cost_lists.create!(title: "所有者のリスト", budget: 300000)
+
+      post login_path, params: { email: other_user.email, password: "password" }
+
+      patch cost_list_path(cost_list), params: {
+        cost_list: { title: "他人が変更した名前", budget: 400000 }
+      }
+
+      expect(response).to have_http_status(:not_found)
+      expect(cost_list.reload.title).to eq("所有者のリスト")
+      expect(cost_list.budget).to eq(300000)
     end
   end
 
@@ -175,12 +262,47 @@ RSpec.describe "費用リスト", type: :request do
         expect do
           post save_session_cost_lists_path, params: {
             cost_list: {
+              title: "ゲストの費用リスト",
               memo: "駅から近い物件を優先する"
             }
           }
         end.not_to change(CostList, :count)
 
         expect(response).to redirect_to(login_path)
+      end
+
+      it "入力したタイトルをユーザー登録後の保存に引き継ぐこと" do
+        post cost_lists_path, params: {
+          cost_list: {
+            budget: 300000,
+            cost_items_attributes: {}
+          }
+        }
+
+        post save_session_cost_lists_path, params: {
+          cost_list: {
+            title: "ゲストが付けたリスト名",
+            memo: "登録後も保存するメモ"
+          }
+        }
+
+        expect(response).to redirect_to(login_path)
+
+        expect do
+          post users_path, params: {
+            user: {
+              name: "ゲスト登録ユーザー",
+              email: "guest-title@example.com",
+              password: "password",
+              password_confirmation: "password"
+            }
+          }
+        end.to change(CostList, :count).by(1)
+
+        cost_list = User.find_by!(email: "guest-title@example.com").cost_lists.last
+
+        expect(cost_list.title).to eq("ゲストが付けたリスト名")
+        expect(cost_list.memo).to eq("登録後も保存するメモ")
       end
     end
 
@@ -215,6 +337,7 @@ RSpec.describe "費用リスト", type: :request do
         expect do
           post save_session_cost_lists_path, params: {
             cost_list: {
+              title: "A物件の費用",
               memo: "駅から近い物件を優先する"
             }
           }
@@ -229,10 +352,195 @@ RSpec.describe "費用リスト", type: :request do
         expect(cost_list.user).to eq(user)
         expect(cost_list.budget).to eq(300000)
         expect(cost_list.memo).to eq("駅から近い物件を優先する")
-        expect(cost_list.title).to eq("引っ越し費用リスト")
+        expect(cost_list.title).to eq("A物件の費用")
         expect(cost_item.name).to eq("家賃")
         expect(cost_item.amount).to eq(70000)
       end
+
+      it "タイトルが空の場合はデフォルトタイトルで保存すること" do
+        user = User.create!(
+          name: "デフォルトタイトル確認ユーザー",
+          email: "default-title@example.com",
+          password: "password",
+          password_confirmation: "password"
+        )
+
+        post login_path, params: {
+          email: user.email,
+          password: "password"
+        }
+
+        post cost_lists_path, params: {
+          cost_list: {
+            budget: 300000,
+            cost_items_attributes: {}
+          }
+        }
+
+        expect do
+          post save_session_cost_lists_path, params: {
+            cost_list: { title: "", memo: "" }
+          }
+        end.to change(CostList, :count).by(1)
+
+        expect(user.cost_lists.last.title).to eq("引っ越し費用リスト")
+      end
+
+      it "タイトルの前後の空白を取り除いて保存すること" do
+        user = User.create!(
+          name: "空白除去確認ユーザー",
+          email: "trim-title@example.com",
+          password: "password",
+          password_confirmation: "password"
+        )
+
+        post login_path, params: {
+          email: user.email,
+          password: "password"
+        }
+
+        post cost_lists_path, params: {
+          cost_list: {
+            budget: 300000,
+            cost_items_attributes: {}
+          }
+        }
+
+        post save_session_cost_lists_path, params: {
+          cost_list: { title: "  A物件の費用  ", memo: "" }
+        }
+
+        expect(user.cost_lists.last.title).to eq("A物件の費用")
+      end
+    end
+  end
+
+  describe "PATCH /cost_lists/:id/update_title" do
+    let(:owner) do
+      User.create!(
+        name: "名前変更ユーザー",
+        email: "update-title@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+    end
+    let(:cost_list) do
+      owner.cost_lists.create!(
+        title: "変更前のリスト名",
+        budget: 300000,
+        memo: "変更前のメモ"
+      )
+    end
+
+    it "所有者がリスト名を変更できること" do
+      post login_path, params: { email: owner.email, password: "password" }
+
+      patch update_title_cost_list_path(cost_list), params: {
+        cost_list: { title: "変更後のリスト名" }
+      }
+
+      expect(response).to redirect_to(mypage_path)
+      expect(flash[:notice]).to eq("リスト名を変更しました")
+      expect(cost_list.reload.title).to eq("変更後のリスト名")
+    end
+
+    it "タイトル以外の属性を変更しないこと" do
+      post login_path, params: { email: owner.email, password: "password" }
+
+      patch update_title_cost_list_path(cost_list), params: {
+        cost_list: {
+          title: "変更後のリスト名",
+          budget: 500000,
+          memo: "変更後のメモ"
+        }
+      }
+
+      cost_list.reload
+
+      expect(cost_list.title).to eq("変更後のリスト名")
+      expect(cost_list.budget).to eq(300000)
+      expect(cost_list.memo).to eq("変更前のメモ")
+    end
+
+    it "タイトルが空欄の場合は変更しないこと" do
+      post login_path, params: { email: owner.email, password: "password" }
+
+      patch update_title_cost_list_path(cost_list), params: {
+        cost_list: { title: "" }
+      }
+
+      expect(response).to redirect_to(mypage_path)
+      expect(flash[:alert]).to eq("リスト名を変更できませんでした")
+      expect(cost_list.reload.title).to eq("変更前のリスト名")
+    end
+
+    it "他人の費用リストを変更できないこと" do
+      other_user = User.create!(
+        name: "他ユーザー",
+        email: "other-update-title@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      post login_path, params: { email: other_user.email, password: "password" }
+
+      patch update_title_cost_list_path(cost_list), params: {
+        cost_list: { title: "他人が変更した名前" }
+      }
+
+      expect(response).to have_http_status(:not_found)
+      expect(cost_list.reload.title).to eq("変更前のリスト名")
+    end
+  end
+
+  describe "DELETE /cost_lists/:id" do
+    it "所有者であるログインユーザーが費用リストを削除できること" do
+      user = User.create!(
+        name: "削除テストユーザー",
+        email: "destroy@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      cost_list = user.cost_lists.create!(title: "削除する費用リスト")
+
+      post login_path, params: {
+        email: user.email,
+        password: "password"
+      }
+
+      expect do
+        delete cost_list_path(cost_list)
+      end.to change(CostList, :count).by(-1)
+
+      expect(response).to redirect_to(mypage_path)
+      expect(flash[:notice]).to eq("費用リストを削除しました")
+    end
+
+    it "他人の費用リストを削除できないこと" do
+      owner = User.create!(
+        name: "所有者",
+        email: "owner@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      other_user = User.create!(
+        name: "他ユーザー",
+        email: "other@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      cost_list = owner.cost_lists.create!(title: "所有者の費用リスト")
+
+      post login_path, params: {
+        email: other_user.email,
+        password: "password"
+      }
+
+      expect do
+        delete cost_list_path(cost_list)
+      end.not_to change(CostList, :count)
+
+      expect(response).to have_http_status(:not_found)
+      expect(CostList.exists?(cost_list.id)).to be true
     end
   end
 end
