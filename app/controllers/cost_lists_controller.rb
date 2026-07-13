@@ -36,6 +36,13 @@ class CostListsController < ApplicationController
     end
   end
 
+  def destroy
+    @cost_list = current_user.cost_lists.find(params[:id])
+    @cost_list.destroy!
+
+    redirect_to mypage_path, notice: "費用リストを削除しました"
+  end
+
   def update_memo
     @cost_list = current_user.cost_lists.find(params[:id])
 
@@ -48,16 +55,28 @@ class CostListsController < ApplicationController
     end
   end
 
+  def update_title
+    @cost_list = current_user.cost_lists.find(params[:id])
+
+    if @cost_list.update(title_params)
+      redirect_to mypage_path, notice: "リスト名を変更しました"
+    else
+      redirect_to mypage_path, alert: "リスト名を変更できませんでした"
+    end
+  end
+
   def save_session
     return redirect_to mypage_path, alert: "保存する費用データがありません" if session[:cost_list_params].blank?
 
+    submitted_title = params.dig(:cost_list, :title).to_s.strip
     memo = params.dig(:cost_list, :memo)
+
+    session[:cost_list_params]["title"] = submitted_title.presence || "引っ越し費用リスト"
     session[:cost_list_params]["memo"] = memo if memo
 
     return redirect_to login_path, alert: "保存するにはログインしてください" unless logged_in?
 
     @cost_list = current_user.cost_lists.build(session[:cost_list_params])
-    @cost_list.title = "引っ越し費用リスト"
 
     if @cost_list.save
       session.delete(:cost_list_params)
@@ -71,6 +90,7 @@ class CostListsController < ApplicationController
 
   def cost_list_params
     params.require(:cost_list).permit(
+      :title,
       :budget,
       :memo,
       cost_items_attributes: %i[id name category amount status _destroy]
@@ -79,6 +99,10 @@ class CostListsController < ApplicationController
 
   def memo_params
     params.require(:cost_list).permit(:memo)
+  end
+
+  def title_params
+    params.require(:cost_list).permit(:title)
   end
 
   def calculate_result

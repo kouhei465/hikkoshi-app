@@ -4,6 +4,16 @@
                 controller: "nested-form",
                 nested_form_estimate_amounts_by_name_value: CostItem::REFERENCE_ESTIMATE_AMOUNTS_BY_NAME.to_json
               } do |f| %>
+  <% if cost_list.persisted? %>
+    <div class="mb-3">
+      <%= f.label :title, "リスト名" %>
+      <%= f.text_field :title,
+                       class: "form-control",
+                       maxlength: 50,
+                       required: true %>
+    </div>
+  <% end %>
+
   <div class="mb-3">
     <%= f.label :budget, "予算" %>
     <%= f.number_field :budget, class: "form-control" %>

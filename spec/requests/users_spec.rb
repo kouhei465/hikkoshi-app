@@ -63,7 +63,6 @@ RSpec.describe "ユーザー登録", type: :request do
         post cost_lists_path, params: {
           cost_list: {
             budget: 300_000,
-            memo: "駅から近い物件を優先する",
             cost_items_attributes: {
               "0" => {
                 name: "家賃",
@@ -76,6 +75,15 @@ RSpec.describe "ユーザー登録", type: :request do
         }
 
         expect(response).to redirect_to(result_cost_lists_path)
+
+        post save_session_cost_lists_path, params: {
+          cost_list: {
+            title: "A物件の費用",
+            memo: "駅から近い物件を優先する"
+          }
+        }
+
+        expect(response).to redirect_to(login_path)
 
         user_params = {
           user: {
@@ -100,7 +108,7 @@ RSpec.describe "ユーザー登録", type: :request do
         cost_list = user.cost_lists.last
         cost_item = cost_list.cost_items.first
 
-        expect(cost_list.title).to eq("引っ越し費用リスト")
+        expect(cost_list.title).to eq("A物件の費用")
         expect(cost_list.budget).to eq(300_000)
         expect(cost_list.memo).to eq("駅から近い物件を優先する")
         expect(cost_item.name).to eq("家賃")
