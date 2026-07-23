@@ -415,6 +415,165 @@ RSpec.describe "費用リスト", type: :request do
     end
   end
 
+  describe "GET /cost_lists/compare" do
+    context "未ログインの場合" do
+      it "ログイン画面にリダイレクトすること" do
+        get compare_cost_lists_path, params: { cost_list_ids: [ 1, 2 ] }
+
+        expect(response).to redirect_to(login_path)
+      end
+    end
+
+    context "ログイン済みの場合" do
+      let(:user) do
+        User.create!(
+          name: "比較テストユーザー",
+          email: "compare@example.com",
+          password: "password",
+          password_confirmation: "password"
+        )
+      end
+      let(:first_cost_list) do
+        user.cost_lists.create!(
+          title: "A物件の費用",
+          budget: 400_000
+        )
+      end
+      let(:second_cost_list) do
+        user.cost_lists.create!(
+          title: "B物件の費用",
+          budget: 180_000
+        )
+      end
+
+      before do
+        first_cost_list.cost_items.create!(
+          name: "家賃",
+          category: "rent",
+          amount: 100_000,
+          status: "confirmed"
+        )
+        first_cost_list.cost_items.create!(
+          name: "引っ越し業者費用",
+          category: "moving",
+          amount: 50_000,
+          status: "estimated"
+        )
+        second_cost_list.cost_items.create!(
+          name: "冷蔵庫",
+          category: "furniture",
+          amount: 180_000,
+          status: "confirmed"
+        )
+        second_cost_list.cost_items.create!(
+          name: "雑費",
+          category: "other",
+          amount: 40_000,
+          status: "estimated"
+        )
+
+        post login_path, params: { email: user.email, password: "password" }
+      end
+
+      it "自分の2件の費用リストについて総額・予算差・カテゴリ別内訳・安い方を比較できること" do
+        get compare_cost_lists_path,
+            params: { cost_list_ids: [ second_cost_list.id, first_cost_list.id ] }
+
+        expect(response).to have_http_status(:ok)
+
+        document = Nokogiri::HTML(response.body)
+        headers = document.css("table thead th").map { |header| header.text.strip }
+
+        expect(headers).to eq([ "比較項目", "B物件の費用", "A物件の費用" ])
+        expect(table_row_values(document, "費用合計")).to eq([ "220,000円", "150,000円" ])
+        expect(table_row_values(document, "予算との差")).to eq(
+          [ "予算超過：40,000円", "予算内：残り250,000円" ]
+        )
+        expect(table_row_values(document, "賃貸費用")).to eq([ "0円", "100,000円" ])
+        expect(table_row_values(document, "引っ越し業者費用")).to eq([ "0円", "50,000円" ])
+        expect(table_row_values(document, "家具家電費用")).to eq([ "180,000円", "0円" ])
+        expect(table_row_values(document, "その他費用")).to eq([ "40,000円", "0円" ])
+        expect(document.text).to include("A物件の費用の方が70,000円安いです。")
+      end
+
+      it "予算が未入力の費用リストを0円の予算として表示しないこと" do
+        first_cost_list.update!(budget: nil)
+
+        get compare_cost_lists_path,
+            params: { cost_list_ids: [ first_cost_list.id, second_cost_list.id ] }
+
+        document = Nokogiri::HTML(response.body)
+
+        expect(table_row_values(document, "予算").first).to eq("予算未入力")
+        expect(table_row_values(document, "予算との差").first).to eq("予算未入力")
+      end
+
+      it "選択が0件の場合はマイページにリダイレクトすること" do
+        get compare_cost_lists_path
+
+        expect(response).to redirect_to(mypage_path)
+        expect(flash[:alert]).to eq("比較する費用リストを2件選択してください")
+      end
+
+      it "選択が1件の場合はマイページにリダイレクトすること" do
+        get compare_cost_lists_path, params: { cost_list_ids: [ first_cost_list.id ] }
+
+        expect(response).to redirect_to(mypage_path)
+        expect(flash[:alert]).to eq("比較する費用リストを2件選択してください")
+      end
+
+      it "選択が3件以上の場合はマイページにリダイレクトすること" do
+        third_cost_list = user.cost_lists.create!(title: "C物件の費用")
+
+        get compare_cost_lists_path,
+            params: {
+              cost_list_ids: [
+                first_cost_list.id,
+                second_cost_list.id,
+                third_cost_list.id
+              ]
+            }
+
+        expect(response).to redirect_to(mypage_path)
+        expect(flash[:alert]).to eq("比較する費用リストを2件選択してください")
+      end
+
+      it "同じIDを2回送った場合はマイページにリダイレクトすること" do
+        get compare_cost_lists_path,
+            params: { cost_list_ids: [ first_cost_list.id, first_cost_list.id ] }
+
+        expect(response).to redirect_to(mypage_path)
+        expect(flash[:alert]).to eq("比較する費用リストを2件選択してください")
+      end
+
+      it "他人の費用リストが含まれる場合はマイページにリダイレクトすること" do
+        other_user = User.create!(
+          name: "比較対象外ユーザー",
+          email: "compare-other@example.com",
+          password: "password",
+          password_confirmation: "password"
+        )
+        other_cost_list = other_user.cost_lists.create!(title: "他人の費用リスト")
+
+        get compare_cost_lists_path,
+            params: { cost_list_ids: [ first_cost_list.id, other_cost_list.id ] }
+
+        expect(response).to redirect_to(mypage_path)
+        expect(flash[:alert]).to eq("比較対象の費用リストを確認できませんでした")
+      end
+
+      it "存在しないIDが含まれる場合はマイページにリダイレクトすること" do
+        nonexistent_id = CostList.maximum(:id).to_i + 1
+
+        get compare_cost_lists_path,
+            params: { cost_list_ids: [ first_cost_list.id, nonexistent_id ] }
+
+        expect(response).to redirect_to(mypage_path)
+        expect(flash[:alert]).to eq("比較対象の費用リストを確認できませんでした")
+      end
+    end
+  end
+
   describe "PATCH /cost_lists/:id/update_title" do
     let(:owner) do
       User.create!(
@@ -542,5 +701,13 @@ RSpec.describe "費用リスト", type: :request do
       expect(response).to have_http_status(:not_found)
       expect(CostList.exists?(cost_list.id)).to be true
     end
+  end
+
+  def table_row_values(document, heading)
+    row = document.css("table tbody tr").find do |table_row|
+      table_row.at_css("th").text.strip == heading
+    end
+
+    row.css("td").map { |cell| cell.text.strip }
   end
 end

@@ -18,6 +18,7 @@ Rails.application.routes.draw do
     collection do
       get :result
       post :save_session
+      get :compare
     end
 
     resources :cost_items, only: [] do

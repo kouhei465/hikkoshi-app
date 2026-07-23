@@ -1,0 +1,77 @@
+<main class="container py-4 py-md-5">
+  <h2 class="mb-4">費用リスト比較</h2>
+
+  <% first_data, second_data = @comparison_data %>
+  <% total_difference = (first_data[:total_amount] - second_data[:total_amount]).abs %>
+
+  <div class="alert alert-info mb-4">
+    <% if first_data[:total_amount] == second_data[:total_amount] %>
+      2つの費用合計は同額です。
+    <% elsif first_data[:total_amount] < second_data[:total_amount] %>
+      <%= first_data[:cost_list].title %>の方が<%= number_to_currency(total_difference, unit: "円", precision: 0, format: "%n%u") %>安いです。
+    <% else %>
+      <%= second_data[:cost_list].title %>の方が<%= number_to_currency(total_difference, unit: "円", precision: 0, format: "%n%u") %>安いです。
+    <% end %>
+  </div>
+
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered align-middle">
+      <thead>
+        <tr>
+          <th scope="col">比較項目</th>
+          <% @comparison_data.each do |data| %>
+            <th scope="col"><%= data[:cost_list].title %></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">費用合計</th>
+          <% @comparison_data.each do |data| %>
+            <td><%= number_to_currency(data[:total_amount], unit: "円", precision: 0, format: "%n%u") %></td>
+          <% end %>
+        </tr>
+        <tr>
+          <th scope="row">予算</th>
+          <% @comparison_data.each do |data| %>
+            <td>
+              <% if data[:cost_list].budget.blank? %>
+                予算未入力
+              <% else %>
+                <%= number_to_currency(data[:budget_amount], unit: "円", precision: 0, format: "%n%u") %>
+              <% end %>
+            </td>
+          <% end %>
+        </tr>
+        <tr>
+          <th scope="row">予算との差</th>
+          <% @comparison_data.each do |data| %>
+            <td>
+              <% if data[:cost_list].budget.blank? %>
+                予算未入力
+              <% elsif data[:difference] >= 0 %>
+                予算内：残り<%= number_to_currency(data[:difference], unit: "円", precision: 0, format: "%n%u") %>
+              <% else %>
+                予算超過：<%= number_to_currency(data[:difference].abs, unit: "円", precision: 0, format: "%n%u") %>
+              <% end %>
+            </td>
+          <% end %>
+        </tr>
+        <% CostItem.categories.keys.each do |category| %>
+          <tr>
+            <th scope="row"><%= t("enums.cost_item.category.#{category}") %></th>
+            <% @comparison_data.each do |data| %>
+              <td><%= number_to_currency(data[:category_totals][category], unit: "円", precision: 0, format: "%n%u") %></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-grid gap-2 d-md-flex gap-md-3">
+    <%= link_to "マイページに戻る", mypage_path, class: "btn btn-primary" %>
+    <%= link_to "1件目の詳細を見る", cost_list_path(@cost_lists.first), class: "btn btn-outline-primary" %>
+    <%= link_to "2件目の詳細を見る", cost_list_path(@cost_lists.second), class: "btn btn-outline-primary" %>
+  </div>
+</main>
