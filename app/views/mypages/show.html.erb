@@ -1,18 +1,44 @@
 <main class="container py-4 py-md-5">
   <h2 class="mb-4">マイページ</h2>
 
-  <div class="d-grid d-sm-block mb-4">
+  <div class="d-grid gap-2 d-sm-flex mb-4">
     <%= link_to "新しく費用を計算する", new_cost_list_path, class: "btn btn-primary" %>
+
+    <%= form_with url: compare_cost_lists_path,
+                  method: :get,
+                  html: { id: "cost-list-compare-form" },
+                  data: { turbo: false },
+                  class: "m-0" do %>
+      <%= button_tag "選択した2件を比較する",
+                     type: "submit",
+                     name: nil,
+                     class: "btn btn-primary",
+                     disabled: @cost_lists.size < 2 %>
+    <% end %>
   </div>
 
   <h3 class="mb-3">保存済み費用一覧</h3>
+
+  <% if @cost_lists.size >= 2 %>
+    <p>比較する費用リストを2件選択してください。</p>
+  <% else %>
+    <p>比較するには費用リストを2件以上保存してください。</p>
+  <% end %>
 
   <%# 保存済み費用リストの有無で一覧表示を切り替える %>
   <% if @cost_lists.any? %>
     <% @cost_lists.each do |cost_list| %>
       <div class="bg-light p-3 p-md-4 mb-3 d-flex justify-content-between align-items-center gap-3">
-        <div class="text-break flex-grow-1">
-          <strong><%= cost_list.title %></strong>
+        <div class="form-check text-break flex-grow-1">
+          <%= check_box_tag "cost_list_ids[]",
+                            cost_list.id,
+                            false,
+                            id: "compare-cost-list-#{cost_list.id}",
+                            class: "form-check-input",
+                            form: "cost-list-compare-form" %>
+          <%= label_tag "compare-cost-list-#{cost_list.id}",
+                        cost_list.title,
+                        class: "form-check-label fw-bold" %>
           <div class="text-muted"><%= cost_list.created_at.strftime("%Y/%m/%d %H:%M") %></div>
         </div>
 
@@ -51,10 +77,12 @@
           </ul>
         </div>
       </div>
-
-      <%= render "rename_cost_list_modal", cost_list: cost_list %>
     <% end %>
   <% else %>
     <p>保存済みの費用リストはまだありません。</p>
+  <% end %>
+
+  <% @cost_lists.each do |cost_list| %>
+    <%= render "rename_cost_list_modal", cost_list: cost_list %>
   <% end %>
 </main>

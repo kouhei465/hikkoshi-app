@@ -86,6 +86,32 @@ class CostListsController < ApplicationController
     end
   end
 
+  def compare
+    return redirect_to login_path, alert: "ログインしてください" unless logged_in?
+
+    ids = Array(params[:cost_list_ids]).reject(&:blank?).uniq
+
+    if ids.size != 2
+      redirect_to mypage_path, alert: "比較する費用リストを2件選択してください"
+      return
+    end
+
+    cost_lists = current_user.cost_lists
+                             .includes(:cost_items)
+                             .where(id: ids)
+                             .to_a
+
+    if cost_lists.size != 2
+      redirect_to mypage_path, alert: "比較対象の費用リストを確認できませんでした"
+      return
+    end
+
+    @cost_lists = ids.filter_map do |id|
+      cost_lists.find { |cost_list| cost_list.id == id.to_i }
+    end
+    @comparison_data = @cost_lists.map { |cost_list| build_cost_summary(cost_list) }
+  end
+
   private
 
   def cost_list_params
@@ -106,23 +132,38 @@ class CostListsController < ApplicationController
   end
 
   def calculate_result
-    cost_items = @cost_list.cost_items.reject(&:marked_for_destruction?)
+    summary = build_cost_summary(@cost_list)
 
-    @total_amount = cost_items.sum { |item| item.amount.to_i }
-    @budget_amount = @cost_list.budget.to_i
-    @difference = @budget_amount - @total_amount
+    @total_amount = summary[:total_amount]
+    @budget_amount = summary[:budget_amount]
+    @difference = summary[:difference]
+    @category_totals = summary[:category_totals]
+    @largest_category = summary[:largest_category]
+  end
 
-    @category_totals = CostItem.categories.keys.to_h do |category|
+  def build_cost_summary(cost_list)
+    cost_items = cost_list.cost_items.reject(&:marked_for_destruction?)
+    total_amount = cost_items.sum { |item| item.amount.to_i }
+    budget_amount = cost_list.budget.to_i
+    category_totals = CostItem.categories.keys.to_h do |category|
       category_total = cost_items
                        .select { |item| item.category == category }
                        .sum { |item| item.amount.to_i }
 
       [ category, category_total ]
     end
+    largest_category = category_totals
+                       .select { |_category, amount| amount.positive? }
+                       .max_by { |_category, amount| amount }
 
-    @largest_category = @category_totals
-                        .select { |_category, amount| amount.positive? }
-                        .max_by { |_category, amount| amount }
+    {
+      cost_list: cost_list,
+      total_amount: total_amount,
+      budget_amount: budget_amount,
+      difference: budget_amount - total_amount,
+      category_totals: category_totals,
+      largest_category: largest_category
+    }
   end
 
   def build_initial_cost_items
