@@ -26,3 +26,14 @@ ja:
         unchecked: "未確認"
         estimated: "概算"
         confirmed: "確定"
+
+  password_resets:
+    invalid_token: "パスワード再設定用のリンクが無効か、有効期限が切れています"
+    create:
+      instructions_sent: "ご入力のメールアドレスが登録されている場合、パスワード再設定用のメールを送信しました"
+    update:
+      success: "パスワードを変更しました。新しいパスワードでログインしてください"
+
+  user_mailer:
+    reset_password_email:
+      subject: "パスワード再設定のご案内"

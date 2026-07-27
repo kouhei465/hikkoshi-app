@@ -17,6 +17,12 @@ RSpec.describe User, type: :model do
       expect(user).to be_valid
     end
 
+    it "有効な属性の場合は通常の新規登録を保存できる" do
+      user = described_class.new(valid_attributes)
+
+      expect(user.save).to be(true)
+    end
+
     it "名前が空の場合は無効になる" do
       user = described_class.new(valid_attributes.merge(name: nil))
 
@@ -87,6 +93,53 @@ RSpec.describe User, type: :model do
       )
 
       expect(user).to be_invalid
+    end
+  end
+
+  describe "パスワード変更" do
+    let(:user) do
+      described_class.create!(
+        name: "パスワード変更ユーザー",
+        email: "password-change@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+    end
+
+    it "空のパスワードでは変更できない" do
+      crypted_password = user.crypted_password
+      user.password_confirmation = ""
+
+      expect(user.change_password("")).to be(false)
+      expect(user.reload.crypted_password).to eq(crypted_password)
+    end
+
+    it "確認用パスワードが空の場合は変更できない" do
+      user.password_confirmation = ""
+
+      expect(user.change_password("new-password")).to be(false)
+      expect(user.errors[:password_confirmation]).to be_present
+    end
+
+    it "パスワードと確認用パスワードが一致しない場合は変更できない" do
+      user.password_confirmation = "different"
+
+      expect(user.change_password("new-password")).to be(false)
+      expect(user.errors[:password_confirmation]).to be_present
+    end
+
+    it "パスワードが3文字未満の場合は変更できない" do
+      user.password_confirmation = "ab"
+
+      expect(user.change_password("ab")).to be(false)
+      expect(user.errors[:password]).to be_present
+    end
+
+    it "有効なパスワードへ変更できる" do
+      user.password_confirmation = "new-password"
+
+      expect(user.change_password("new-password")).to be(true)
+      expect(user.reload.valid_password?("new-password")).to be(true)
     end
   end
 
