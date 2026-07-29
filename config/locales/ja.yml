@@ -34,6 +34,16 @@ ja:
     update:
       success: "パスワードを変更しました。新しいパスワードでログインしてください"
 
+  mypages:
+    update:
+      success: "メールアドレスを変更しました"
+      failure: "メールアドレスを変更できませんでした"
+      current_password_blank: "現在のパスワードを入力してください"
+      invalid_current_password: "現在のパスワードが正しくありません"
+      email_blank: "新しいメールアドレスを入力してください"
+      same_email: "現在と同じメールアドレスです"
+      email_taken: "そのメールアドレスは使用できません"
+
   user_mailer:
     reset_password_email:
       subject: "パスワード再設定のご案内"

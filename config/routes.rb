@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   resources :users, only: %i[new create]
   resources :password_resets, only: %i[new create edit update]
 
-  resource :mypage, only: %i[show]
+  resource :mypage, only: %i[show edit update]
 
   resources :cost_lists, only: %i[new create show edit update destroy] do
     member do

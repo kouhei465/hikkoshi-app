@@ -1,0 +1,32 @@
+<main class="flex-grow-1 d-flex flex-column justify-content-center align-items-center py-4 py-md-5">
+  <div class="col-10 col-sm-8 col-md-6 col-lg-4">
+    <h2 class="mb-4 text-center">ユーザー情報編集</h2>
+
+    <div class="mb-4">
+      <div class="form-label">現在のメールアドレス</div>
+      <div class="form-control bg-light"><%= @current_email %></div>
+    </div>
+
+    <%= form_with url: mypage_path, method: :patch, scope: :user do |f| %>
+      <div class="mb-3">
+        <%= f.label :email, "新しいメールアドレス", class: "form-label" %>
+        <%= f.email_field :email,
+                          value: @submitted_email,
+                          autocomplete: "email",
+                          class: "form-control" %>
+      </div>
+
+      <div class="mb-4">
+        <%= f.label :current_password, "現在のパスワード", class: "form-label" %>
+        <%= f.password_field :current_password,
+                             autocomplete: "current-password",
+                             class: "form-control" %>
+      </div>
+
+      <div class="d-grid gap-2">
+        <%= f.submit "メールアドレスを変更する", class: "btn btn-primary" %>
+        <%= link_to "マイページに戻る", mypage_path, class: "btn btn-outline-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</main>
