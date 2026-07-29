@@ -3,6 +3,7 @@
 
   <div class="d-grid gap-2 d-sm-flex mb-4">
     <%= link_to "新しく費用を計算する", new_cost_list_path, class: "btn btn-primary" %>
+    <%= link_to "ユーザー情報を編集する", edit_mypage_path, class: "btn btn-primary" %>
 
     <%= form_with url: compare_cost_lists_path,
                   method: :get,
