@@ -94,6 +94,21 @@ RSpec.describe User, type: :model do
 
       expect(user).to be_invalid
     end
+
+    it "通常登録ではパスワードなしの新規ユーザーを登録できない" do
+      user = described_class.new(name: "通常ユーザー", email: "without-password@example.com")
+
+      expect(user).to be_invalid
+      expect(user.errors[:password]).to be_present
+    end
+
+    it "Google認証を持つ新規ユーザーはパスワードなしで登録できる" do
+      user = described_class.new(name: "Googleユーザー", email: "google-model@example.com")
+      user.authentications.build(provider: "google", uid: "google-model-uid")
+
+      expect(user.save).to be(true)
+      expect(user.crypted_password).to be_nil
+    end
   end
 
   describe "パスワード変更" do
@@ -153,6 +168,13 @@ RSpec.describe User, type: :model do
     it "ユーザー削除時に関連する費用リストも削除する設定になっている" do
       association = described_class.reflect_on_association(:cost_lists)
 
+      expect(association.options[:dependent]).to eq(:destroy)
+    end
+
+    it "複数の外部認証を持ち、ユーザー削除時に削除する設定になっている" do
+      association = described_class.reflect_on_association(:authentications)
+
+      expect(association.macro).to eq(:has_many)
       expect(association.options[:dependent]).to eq(:destroy)
     end
   end

@@ -9,16 +9,12 @@ class UsersController < ApplicationController
     if @user.save
       auto_login(@user)
 
-      if session[:cost_list_params].present?
-        cost_list = @user.cost_lists.build(session[:cost_list_params])
-        cost_list.title = "引っ越し費用リスト" if cost_list.title.blank?
-
-        if cost_list.save
-          session.delete(:cost_list_params)
-          redirect_to mypage_path, notice: "ユーザー登録と費用リストの保存が完了しました"
-        else
-          redirect_to mypage_path, alert: "ユーザー登録は完了しましたが、費用リストの保存に失敗しました"
-        end
+      case GuestCostListSaver.call(user: @user, attributes: session[:cost_list_params])
+      when :saved
+        session.delete(:cost_list_params)
+        redirect_to mypage_path, notice: "ユーザー登録と費用リストの保存が完了しました"
+      when :failed
+        redirect_to mypage_path, alert: "ユーザー登録は完了しましたが、費用リストの保存に失敗しました"
       else
         redirect_to mypage_path, notice: "ユーザー登録が完了しました"
       end
