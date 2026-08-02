@@ -36,5 +36,8 @@ Rails.application.routes.draw do
 
   delete "logout", to: "user_sessions#destroy"
 
+  post "oauth/google", to: "google_oauths#oauth", as: :google_oauth
+  get "oauth/google/callback", to: "google_oauths#callback", as: :google_oauth_callback
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

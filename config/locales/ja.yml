@@ -34,7 +34,22 @@ ja:
     update:
       success: "パスワードを変更しました。新しいパスワードでログインしてください"
 
+  google_oauths:
+    already_logged_in: "すでにログインしています"
+    not_configured: "Googleログインは現在利用できません"
+    invalid_state: "Googleログインを確認できませんでした。もう一度お試しください"
+    cancelled: "Googleログインをキャンセルしました"
+    failed: "Googleログインに失敗しました。時間をおいてもう一度お試しください"
+    missing_information: "Googleアカウントから登録に必要な情報を取得できませんでした"
+    duplicate_email: "このメールアドレスはすでに登録されています。メールアドレスとパスワードでログインしてください。"
+    registration_conflict: "Googleログインを完了できませんでした。もう一度お試しください"
+    logged_in: "Googleでログインしました"
+    registered: "Googleアカウントでユーザー登録しました"
+    registered_with_cost_list: "Googleアカウントでのユーザー登録と費用リストの保存が完了しました"
+    cost_list_failed: "ユーザー登録は完了しましたが、費用リストの保存に失敗しました"
+
   mypages:
+    google_only_edit_forbidden: "Googleログイン専用ユーザーはメールアドレスを変更できません"
     update:
       success: "メールアドレスを変更しました"
       failure: "メールアドレスを変更できませんでした"

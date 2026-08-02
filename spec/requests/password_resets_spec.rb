@@ -85,6 +85,21 @@ RSpec.describe "パスワード再設定", type: :request do
         )
       end
     end
+
+    context "Googleログイン専用ユーザーの場合" do
+      it "再設定トークンを発行せず、メールも送信しない" do
+        google_user = User.new(name: "Googleユーザー", email: "google-reset@example.com")
+        google_user.authentications.build(provider: "google", uid: "google-reset-uid")
+        google_user.save!
+
+        expect do
+          post password_resets_path, params: { email: google_user.email }
+        end.not_to change(ActionMailer::Base.deliveries, :count)
+
+        expect(response).to redirect_to(login_path)
+        expect(google_user.reload.reset_password_token).to be_nil
+      end
+    end
   end
 
   describe "GET /password_resets/:id/edit" do

@@ -1,5 +1,6 @@
 class MypagesController < ApplicationController
   before_action :require_logged_in_user
+  before_action :reject_google_only_user, only: %i[edit update]
 
   def show
     @cost_lists = current_user.cost_lists.order(created_at: :desc)
@@ -48,6 +49,12 @@ class MypagesController < ApplicationController
     return if logged_in?
 
     redirect_to login_path, alert: "ログインしてください"
+  end
+
+  def reject_google_only_user
+    return unless current_user.google_only?
+
+    redirect_to mypage_path, alert: t("mypages.google_only_edit_forbidden")
   end
 
   def email_change_params
