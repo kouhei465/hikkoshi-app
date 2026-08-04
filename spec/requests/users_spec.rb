@@ -7,9 +7,50 @@ RSpec.describe "ユーザー登録", type: :request do
 
       expect(response).to have_http_status(:ok)
     end
+
+    it "ログイン中はマイページにリダイレクトする" do
+      user = User.create!(
+        name: "登録画面ガードユーザー",
+        email: "registration-page-guard@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      post login_path, params: { email: user.email, password: "password" }
+
+      get new_user_path
+
+      expect(response).to redirect_to(mypage_path)
+      expect(flash[:alert]).to eq("すでにログインしています")
+    end
   end
 
   describe "POST /users" do
+    context "ログイン中の場合" do
+      it "ユーザー登録を実行しない" do
+        user = User.create!(
+          name: "登録処理ガードユーザー",
+          email: "registration-create-guard@example.com",
+          password: "password",
+          password_confirmation: "password"
+        )
+        post login_path, params: { email: user.email, password: "password" }
+
+        expect do
+          post users_path, params: {
+            user: {
+              name: "作成されないユーザー",
+              email: "not-created@example.com",
+              password: "password",
+              password_confirmation: "password"
+            }
+          }
+        end.not_to change(User, :count)
+
+        expect(response).to redirect_to(mypage_path)
+        expect(flash[:alert]).to eq("すでにログインしています")
+      end
+    end
+
     context "入力内容が正しい場合" do
       it "ユーザー登録が成功し、自動ログインされること" do
         expect do

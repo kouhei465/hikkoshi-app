@@ -177,5 +177,23 @@ RSpec.describe User, type: :model do
       expect(association.macro).to eq(:has_many)
       expect(association.options[:dependent]).to eq(:destroy)
     end
+
+    it "ユーザーを削除すると認証情報、費用リスト、費用項目も削除する" do
+      user = described_class.create!(
+        name: "関連削除ユーザー",
+        email: "dependent-destroy@example.com",
+        password: "password",
+        password_confirmation: "password"
+      )
+      authentication = user.authentications.create!(provider: "google", uid: "user-dependent-uid")
+      cost_list = user.cost_lists.create!(title: "関連削除リスト")
+      cost_item = cost_list.cost_items.create!(name: "家賃", category: :rent, status: :confirmed)
+
+      user.destroy!
+
+      expect(Authentication.exists?(authentication.id)).to be(false)
+      expect(CostList.exists?(cost_list.id)).to be(false)
+      expect(CostItem.exists?(cost_item.id)).to be(false)
+    end
   end
 end

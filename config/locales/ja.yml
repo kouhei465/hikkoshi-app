@@ -59,6 +59,14 @@ ja:
       same_email: "現在と同じメールアドレスです"
       email_taken: "そのメールアドレスは使用できません"
 
+  account_deletions:
+    destroy:
+      confirmations_incomplete: "すべての確認項目にチェックを入れてください"
+      current_password_blank: "現在のパスワードを入力してください"
+      invalid_current_password: "現在のパスワードが正しくありません"
+      failure: "退会手続きを完了できませんでした。時間をおいて再度お試しください"
+      success: "退会手続きが完了しました"
+
   user_mailer:
     reset_password_email:
       subject: "パスワード再設定のご案内"

@@ -1,4 +1,6 @@
 class UserSessionsController < ApplicationController
+  before_action :redirect_logged_in_user, only: %i[new create]
+
   def new; end
 
   def create
