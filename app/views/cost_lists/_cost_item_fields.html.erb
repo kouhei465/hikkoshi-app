@@ -55,28 +55,56 @@
   </div>
 
   <% if item_form.object.category == "moving" %>
+    <% moving_origin_id = item_form.field_id(:moving_origin) %>
+    <% moving_destination_id = item_form.field_id(:moving_destination) %>
     <div class="mt-3 d-none" data-nested-form-target="movingEstimateFields">
-      <p class="text-muted small mb-2">出発地と到着地を選択すると、引っ越し業者費用の概算を反映できます。</p>
+      <p class="text-muted small mb-2">出発地と到着地の郵便番号または住所を入力し、「距離から概算する」を押してください。</p>
 
       <div class="row g-2">
         <div class="col-md-6">
-          <label class="form-label">出発地</label>
-          <select class="form-select"
-                  data-nested-form-target="movingFromPrefecture"
-                  data-action="change->nested-form#applyMovingEstimate">
-            <%= options_for_select([["選択してください", ""]] + CostItem::PREFECTURES.map { |prefecture| [prefecture, prefecture] }) %>
-          </select>
+          <label class="form-label" for="<%= moving_origin_id %>">出発地（郵便番号または住所）</label>
+          <input type="text"
+                 id="<%= moving_origin_id %>"
+                 class="form-control"
+                 maxlength="200"
+                 placeholder="例：870-0831 または 大分県大分市要町1-1"
+                 data-nested-form-target="movingOrigin">
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">到着地</label>
-          <select class="form-select"
-                  data-nested-form-target="movingToPrefecture"
-                  data-action="change->nested-form#applyMovingEstimate">
-            <%= options_for_select([["選択してください", ""]] + CostItem::PREFECTURES.map { |prefecture| [prefecture, prefecture] }) %>
-          </select>
+          <label class="form-label" for="<%= moving_destination_id %>">到着地（郵便番号または住所）</label>
+          <input type="text"
+                 id="<%= moving_destination_id %>"
+                 class="form-control"
+                 maxlength="200"
+                 placeholder="例：870-0831 または 大分県大分市要町1-1"
+                 data-nested-form-target="movingDestination">
         </div>
       </div>
+
+      <p class="text-muted small mt-2 mb-0">
+        郵便番号のみの場合は、該当地域付近を基準とした参考距離になります。<br>
+        より正確に計算する場合は住所を入力してください。
+      </p>
+
+      <div class="d-grid d-sm-block mt-3">
+        <button type="button"
+                class="btn btn-outline-primary"
+                data-nested-form-target="movingEstimateButton"
+                data-action="nested-form#calculateMovingEstimate">
+          距離から概算する
+        </button>
+      </div>
+
+      <p class="text-success small mt-2 mb-0 d-none"
+         aria-live="polite"
+         data-nested-form-target="movingEstimateResult">
+        道路距離：<span data-nested-form-target="movingDistance"></span> km
+      </p>
+      <p class="text-danger small mt-2 mb-0 d-none"
+         role="alert"
+         data-nested-form-target="movingEstimateError"></p>
+      <p class="text-muted small mt-2 mb-0">表示する金額は正式な見積もりではなく、道路距離に基づく参考概算です。</p>
     </div>
   <% end %>
 </div>

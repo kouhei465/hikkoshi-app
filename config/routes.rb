@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   resources :password_resets, only: %i[new create edit update]
 
   resource :mypage, only: %i[show edit update]
+  resource :moving_estimate, only: :create
 
   resources :cost_lists, only: %i[new create show edit update destroy] do
     member do

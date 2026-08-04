@@ -1,20 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static prefecturesByRegion = {
-    北海道: ["北海道"],
-    東北: ["青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
-    関東: ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"],
-    中部: ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県", "三重県"],
-    近畿: ["滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"],
-    中国: ["鳥取県", "島根県", "岡山県", "広島県", "山口県"],
-    四国: ["徳島県", "香川県", "愛媛県", "高知県"],
-    九州: ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県"],
-    沖縄: ["沖縄県"]
-  }
-
   static values = {
-    estimateAmountsByName: Object
+    estimateAmountsByName: Object,
+    movingEstimateUrl: String
   }
 
   static targets = [
@@ -23,9 +12,13 @@ export default class extends Controller {
     "customNameEstimateMessage",
     "destroyField",
     "item",
+    "movingDestination",
+    "movingDistance",
+    "movingEstimateButton",
+    "movingEstimateError",
     "movingEstimateFields",
-    "movingFromPrefecture",
-    "movingToPrefecture",
+    "movingEstimateResult",
+    "movingOrigin",
     "nameSelect",
     "rentEstimateMessage",
     "template"
@@ -62,6 +55,17 @@ export default class extends Controller {
 
     item.querySelector("[data-nested-form-target='destroyField']").value = "1"
     item.hidden = true
+  }
+
+  preventAccidentalSubmit(event) {
+    const target = event.target
+    const buttonInputTypes = ["button", "submit", "image", "reset"]
+
+    if (event.isComposing || target.tagName !== "INPUT" || buttonInputTypes.includes(target.type)) {
+      return
+    }
+
+    event.preventDefault()
   }
 
   applyEstimateAmount(event) {
@@ -128,38 +132,90 @@ export default class extends Controller {
     delete item.dataset.autoEstimateAmount
   }
 
-  applyMovingEstimate(event) {
-    const item = event.currentTarget.closest("[data-nested-form-target='item']")
-    const fromPrefecture = item.querySelector("[data-nested-form-target~='movingFromPrefecture']").value
-    const toPrefecture = item.querySelector("[data-nested-form-target~='movingToPrefecture']").value
+  async calculateMovingEstimate(event) {
+    event.preventDefault()
 
-    if (!fromPrefecture || !toPrefecture) {
+    const item = event.currentTarget.closest("[data-nested-form-target='item']")
+    const origin = item.querySelector("[data-nested-form-target~='movingOrigin']").value.trim()
+    const destination = item.querySelector("[data-nested-form-target~='movingDestination']").value.trim()
+
+    this.hideMovingEstimateFeedback(item)
+
+    if (!origin || !destination) {
+      const message = !origin ? "出発地を入力してください" : "到着地を入力してください"
+      this.showMovingEstimateError(item, message)
       return
     }
 
+    const button = item.querySelector("[data-nested-form-target~='movingEstimateButton']")
     const amountInput = item.querySelector("[data-nested-form-target~='amountInput']")
-    const estimateAmount = this.movingEstimateAmount(fromPrefecture, toPrefecture)
+    button.disabled = true
+    button.textContent = "計算中…"
 
-    amountInput.value = estimateAmount
-    item.dataset.autoEstimateAmount = estimateAmount
+    try {
+      const headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }
+      const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
+
+      if (csrfToken) {
+        headers["X-CSRF-Token"] = csrfToken
+      }
+
+      const response = await fetch(this.movingEstimateUrlValue, {
+        method: "POST",
+        credentials: "same-origin",
+        headers,
+        body: JSON.stringify({ origin, destination })
+      })
+      const payload = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        this.showMovingEstimateError(item, payload.error || "距離を計算できませんでした")
+        return
+      }
+
+      if (!this.validMovingEstimate(payload)) {
+        throw new Error("距離を計算できませんでした")
+      }
+
+      if (!this.shouldShowMovingEstimateFields(item)) {
+        return
+      }
+
+      amountInput.value = payload.estimated_amount
+      item.dataset.autoEstimateAmount = payload.estimated_amount
+
+      const distance = item.querySelector("[data-nested-form-target~='movingDistance']")
+      distance.textContent = payload.distance_km.toLocaleString("ja-JP", { maximumFractionDigits: 1 })
+      item.querySelector("[data-nested-form-target~='movingEstimateResult']").classList.remove("d-none")
+    } catch (_error) {
+      this.showMovingEstimateError(item, "距離を計算できませんでした。時間をおいて再度お試しください")
+    } finally {
+      button.disabled = false
+      button.textContent = "距離から概算する"
+    }
   }
 
-  movingEstimateAmount(fromPrefecture, toPrefecture) {
-    if (fromPrefecture === toPrefecture) {
-      return 30000
-    }
-
-    if ([fromPrefecture, toPrefecture].some((prefecture) => ["北海道", "沖縄県"].includes(prefecture))) {
-      return 150000
-    }
-
-    return this.regionFor(fromPrefecture) === this.regionFor(toPrefecture) ? 50000 : 100000
+  validMovingEstimate(payload) {
+    return Number.isInteger(payload.distance_meters) &&
+      payload.distance_meters > 0 &&
+      Number.isFinite(payload.distance_km) &&
+      payload.distance_km >= 0 &&
+      Number.isInteger(payload.estimated_amount) &&
+      payload.estimated_amount > 0
   }
 
-  regionFor(prefecture) {
-    return Object.keys(this.constructor.prefecturesByRegion).find((region) => (
-      this.constructor.prefecturesByRegion[region].includes(prefecture)
-    ))
+  hideMovingEstimateFeedback(item) {
+    item.querySelector("[data-nested-form-target~='movingEstimateResult']").classList.add("d-none")
+    item.querySelector("[data-nested-form-target~='movingEstimateError']").classList.add("d-none")
+  }
+
+  showMovingEstimateError(item, message) {
+    const error = item.querySelector("[data-nested-form-target~='movingEstimateError']")
+    error.textContent = message
+    error.classList.remove("d-none")
   }
 
   toggleMovingEstimateFields(item) {
@@ -173,16 +229,23 @@ export default class extends Controller {
       return
     }
 
+    fields.classList.toggle("d-none", !this.shouldShowMovingEstimateFields(item))
+  }
+
+  shouldShowMovingEstimateFields(item) {
     const nameSelect = item.querySelector("[data-nested-form-target~='nameSelect']")
     const statusSelect = item.querySelector("[data-nested-form-target~='statusSelect']")
-    const shouldShow = item.dataset.category === "moving" &&
+
+    return item.dataset.category === "moving" &&
       nameSelect.value === "引っ越し業者費用" &&
       statusSelect.value === "estimated"
-
-    fields.classList.toggle("d-none", !shouldShow)
   }
 
   estimateAmountFor(item) {
+    if (this.needsMovingDistanceEstimate(item)) {
+      return
+    }
+
     if (this.needsRentAmount(item)) {
       return this.rentAmount()
     }
@@ -197,6 +260,12 @@ export default class extends Controller {
     const nameSelect = item.querySelector("[data-nested-form-target~='nameSelect']")
 
     return item.dataset.category === "rent" && nameSelect.value !== "家賃"
+  }
+
+  needsMovingDistanceEstimate(item) {
+    const nameSelect = item.querySelector("[data-nested-form-target~='nameSelect']")
+
+    return item.dataset.category === "moving" && nameSelect.value === "引っ越し業者費用"
   }
 
   rentAmount() {

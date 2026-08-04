@@ -8,6 +8,32 @@ RSpec.describe "費用リスト", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include("リスト名")
     end
+
+    it "引っ越し業者費用の距離概算用UIを初期状態では非表示で用意すること" do
+      get new_cost_list_path
+
+      document = Nokogiri::HTML(response.body)
+      form = document.at_css("form[data-controller~='nested-form']")
+      moving_item = document.at_css("[data-category='moving']")
+      estimate_fields = moving_item.at_css("[data-nested-form-target~='movingEstimateFields']")
+
+      expect(form["data-action"].split).to include("keydown.enter->nested-form#preventAccidentalSubmit")
+      expect(estimate_fields["class"].split).to include("d-none")
+      expect(estimate_fields.at_css("[data-nested-form-target~='movingOrigin']")).to be_present
+      expect(estimate_fields.at_css("[data-nested-form-target~='movingDestination']")).to be_present
+      expect(estimate_fields.text).to include("出発地（郵便番号または住所）")
+      expect(estimate_fields.text).to include("到着地（郵便番号または住所）")
+      expect(estimate_fields.css("input").map { |input| input["placeholder"] }).to all(
+        eq("例：870-0831 または 大分県大分市要町1-1")
+      )
+      expect(estimate_fields.css("input").map { |input| input["name"] }).to all(be_nil)
+      expect(estimate_fields.text).to include("距離から概算する")
+      expect(estimate_fields.text).to include("郵便番号のみの場合は、該当地域付近を基準とした参考距離になります。")
+      expect(estimate_fields.text).to include("より正確に計算する場合は住所を入力してください。")
+      expect(estimate_fields.text).to include("正式な見積もりではなく")
+      expect(response.body).to include(moving_estimate_path)
+      expect(response.body).not_to include("GOOGLE_MAPS_API_KEY")
+    end
   end
 
   describe "POST /cost_lists" do

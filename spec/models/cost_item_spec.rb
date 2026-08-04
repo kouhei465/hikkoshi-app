@@ -145,11 +145,4 @@ RSpec.describe CostItem, type: :model do
       )
     end
   end
-
-  describe "PREFECTURES" do
-    it "47都道府県が重複なく定義されている" do
-      expect(described_class::PREFECTURES.size).to eq(47)
-      expect(described_class::PREFECTURES.uniq.size).to eq(47)
-    end
-  end
 end
