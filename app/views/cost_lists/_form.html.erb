@@ -2,7 +2,9 @@
               data: {
                 turbo: false,
                 controller: "nested-form",
-                nested_form_estimate_amounts_by_name_value: CostItem::REFERENCE_ESTIMATE_AMOUNTS_BY_NAME.to_json
+                action: "keydown.enter->nested-form#preventAccidentalSubmit",
+                nested_form_estimate_amounts_by_name_value: CostItem::REFERENCE_ESTIMATE_AMOUNTS_BY_NAME.to_json,
+                nested_form_moving_estimate_url_value: moving_estimate_path
               } do |f| %>
   <% if cost_list.persisted? %>
     <div class="mb-3">

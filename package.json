@@ -6,7 +6,8 @@
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
-    "build:css": "echo 'skip css build'"
+    "build:css": "echo 'skip css build'",
+    "test:javascript": "node --experimental-default-type=module --test spec/javascript/*_test.js"
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
