@@ -12,3 +12,6 @@ application.register("nested-form", NestedFormController)
 
 import CostBreakdownChartController from "./cost_breakdown_chart_controller"
 application.register("cost-breakdown-chart", CostBreakdownChartController)
+
+import AccountDeletionController from "./account_deletion_controller"
+application.register("account-deletion", AccountDeletionController)

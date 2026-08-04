@@ -14,6 +14,8 @@ RSpec.describe "静的ページ", type: :request do
       get privacy_path
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).to include("登録情報の削除")
+      expect(response.body).to include("Googleアカウント自体は削除されません")
     end
   end
 
