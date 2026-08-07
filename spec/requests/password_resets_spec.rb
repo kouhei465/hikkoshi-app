@@ -34,7 +34,7 @@ RSpec.describe "パスワード再設定", type: :request do
 
   describe "POST /password_resets" do
     context "登録済みのメールアドレスの場合" do
-      it "再設定トークンを発行し、HTMLとテキストを含むメールを送信する" do
+      it "小文字の登録メールアドレスで再設定トークンを発行し、HTMLとテキストを含むメールを送信する" do
         expect do
           post password_resets_path, params: { email: user.email }
         end.to change(ActionMailer::Base.deliveries, :count).by(1)
@@ -57,6 +57,22 @@ RSpec.describe "パスワード再設定", type: :request do
         expect(response.body).to include(
           "ご入力のメールアドレスが登録されている場合、パスワード再設定用のメールを送信しました"
         )
+      end
+
+      it "大文字を含むメールアドレスでもユーザーを見つけてメールを送信する" do
+        expect do
+          post password_resets_path, params: { email: user.email.upcase }
+        end.to change(ActionMailer::Base.deliveries, :count).by(1)
+
+        expect(ActionMailer::Base.deliveries.last.to).to eq([ user.email ])
+      end
+
+      it "前後に空白があるメールアドレスでもユーザーを見つけてメールを送信する" do
+        expect do
+          post password_resets_path, params: { email: "  #{user.email}  " }
+        end.to change(ActionMailer::Base.deliveries, :count).by(1)
+
+        expect(ActionMailer::Base.deliveries.last.to).to eq([ user.email ])
       end
 
       it "5分以内に再送信しても新しいメールを送信しない" do
