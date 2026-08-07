@@ -1,8 +1,12 @@
 class User < ApplicationRecord
   authenticates_with_sorcery!
 
+  normalizes :email, with: ->(email) { email.strip.downcase }
+
   validates :name, presence: true, length: { maximum: 255 }
-  validates :email, presence: true, uniqueness: true
+  validates :email,
+            presence: true,
+            uniqueness: { case_sensitive: false }
   validates :password, length: { minimum: 3 }, if: :password_required?
   validates :password, confirmation: true, if: :password_required?
   validates :password_confirmation, presence: true, if: :password_required?

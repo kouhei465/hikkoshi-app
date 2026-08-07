@@ -2,6 +2,15 @@ require "rails_helper"
 
 RSpec.describe "費用項目", type: :request do
   describe "PATCH /cost_lists/:cost_list_id/cost_items/:id/update_status" do
+    it "未ログインの場合はログイン画面にリダイレクトすること" do
+      patch update_status_cost_list_cost_item_path(1, 1), params: {
+        cost_item: { status: "confirmed" }
+      }
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
+    end
+
     it "所有者であるログインユーザーが費用項目のステータスを更新できること" do
       user = User.create!(
         name: "ステータス更新ユーザー",

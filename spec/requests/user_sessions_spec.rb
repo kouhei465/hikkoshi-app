@@ -45,6 +45,44 @@ RSpec.describe "ログイン", type: :request do
 
         expect(response).to have_http_status(:ok)
       end
+
+      it "大文字混在のメールアドレスでもログインできること" do
+        User.create!(
+          name: "大文字ログインユーザー",
+          email: "uppercase-login@example.com",
+          password: "password",
+          password_confirmation: "password"
+        )
+
+        post login_path, params: {
+          email: "Uppercase-Login@Example.COM",
+          password: "password"
+        }
+
+        expect(response).to redirect_to(mypage_path)
+
+        get mypage_path
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "前後に空白があるメールアドレスでもログインできること" do
+        User.create!(
+          name: "空白付きログインユーザー",
+          email: "trimmed-login@example.com",
+          password: "password",
+          password_confirmation: "password"
+        )
+
+        post login_path, params: {
+          email: "  trimmed-login@example.com  ",
+          password: "password"
+        }
+
+        expect(response).to redirect_to(mypage_path)
+
+        get mypage_path
+        expect(response).to have_http_status(:ok)
+      end
     end
 
     context "ログイン情報が間違っている場合" do

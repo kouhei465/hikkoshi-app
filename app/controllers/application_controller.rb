@@ -4,6 +4,12 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def require_logged_in_user
+    return if logged_in?
+
+    redirect_to login_path, alert: "ログインしてください"
+  end
+
   def redirect_logged_in_user
     return unless logged_in?
 

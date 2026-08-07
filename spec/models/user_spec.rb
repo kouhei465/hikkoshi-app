@@ -1,6 +1,36 @@
 require "rails_helper"
 
 RSpec.describe User, type: :model do
+  describe "メールアドレスの正規化" do
+    let(:password_attributes) do
+      {
+        name: "正規化テストユーザー",
+        password: "password",
+        password_confirmation: "password"
+      }
+    end
+
+    it "大文字を含むメールアドレスを小文字にして保存する" do
+      user = described_class.create!(password_attributes.merge(email: "User@Example.COM"))
+
+      expect(user.reload.email).to eq("user@example.com")
+    end
+
+    it "メールアドレスの前後の空白を除去して保存する" do
+      user = described_class.create!(password_attributes.merge(email: "  user@example.com  "))
+
+      expect(user.reload.email).to eq("user@example.com")
+    end
+
+    it "nilは正規化時にもnilのまま扱う" do
+      user = described_class.new(password_attributes.merge(email: nil))
+
+      expect(described_class.normalize_value_for(:email, nil)).to be_nil
+      expect(user.email).to be_nil
+      expect(user).to be_invalid
+    end
+  end
+
   describe "バリデーション" do
     let(:valid_attributes) do
       {
@@ -55,6 +85,16 @@ RSpec.describe User, type: :model do
       )
 
       expect(duplicate_user).to be_invalid
+    end
+
+    it "大文字小文字だけが異なるメールアドレスは重複登録できない" do
+      described_class.create!(valid_attributes)
+      duplicate_user = described_class.new(
+        valid_attributes.merge(name: "別のユーザー", email: "TEST@EXAMPLE.COM")
+      )
+
+      expect(duplicate_user).to be_invalid
+      expect(duplicate_user.errors[:email]).to be_present
     end
 
     it "パスワードが3文字以上の場合は有効になる" do

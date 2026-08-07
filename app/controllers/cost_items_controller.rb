@@ -1,4 +1,6 @@
 class CostItemsController < ApplicationController
+  before_action :require_logged_in_user
+
   def update_status
     @cost_list = current_user.cost_lists.find(params[:cost_list_id])
     @cost_item = @cost_list.cost_items.find(params[:id])
