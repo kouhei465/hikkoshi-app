@@ -78,13 +78,13 @@ Rails.application.configure do
   # caching is enabled.
   config.action_mailer.perform_caching = false
 
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST"), protocol: "https" }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "hikkoshi-cost.com"), protocol: "https" }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
     address: "smtp.resend.com",
     port: 587,
     user_name: "resend",
-    password: ENV.fetch("RESEND_API_KEY"),
+    password: ENV["RESEND_API_KEY"],
     authentication: :plain,
     enable_starttls_auto: true
   }
