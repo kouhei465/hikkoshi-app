@@ -163,15 +163,15 @@ RSpec.describe "パスワード再設定", type: :request do
   end
 
   describe "PATCH /password_resets/:id" do
-    it "有効なトークンとパスワードの場合はパスワードを変更する" do
+    it "有効なトークンと8文字のパスワードの場合はパスワードを変更する" do
       user.generate_reset_password_token!
       token = user.reset_password_token
 
       patch password_reset_path(token), params: {
         user: {
           name: "変更されない名前",
-          password: "new-password",
-          password_confirmation: "new-password"
+          password: "newpass8",
+          password_confirmation: "newpass8"
         }
       }
 
@@ -181,7 +181,7 @@ RSpec.describe "パスワード再設定", type: :request do
 
       expect(user.name).to eq("パスワード再設定ユーザー")
       expect(user.valid_password?("password")).to be(false)
-      expect(user.valid_password?("new-password")).to be(true)
+      expect(user.valid_password?("newpass8")).to be(true)
       expect(user.reset_password_token).to be_nil
       expect(user.reset_password_token_expires_at).to be_nil
 
@@ -256,7 +256,7 @@ RSpec.describe "パスワード再設定", type: :request do
       }
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include("パスワードは3文字以上で入力してください")
+      expect(response.body).to include("パスワードは8文字以上で入力してください")
       expect(user.reload.valid_password?("password")).to be(true)
       expect(user.reset_password_token).to eq(token)
     end
@@ -307,18 +307,18 @@ RSpec.describe "パスワード再設定", type: :request do
       expect(user.reload.valid_password?("password")).to be(true)
     end
 
-    it "3文字未満のパスワードの場合は変更しない" do
+    it "7文字のパスワードの場合は変更しない" do
       user.generate_reset_password_token!
 
       patch password_reset_path(user.reset_password_token), params: {
         user: {
-          password: "ab",
-          password_confirmation: "ab"
+          password: "1234567",
+          password_confirmation: "1234567"
         }
       }
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include("パスワードは3文字以上で入力してください")
+      expect(response.body).to include("パスワードは8文字以上で入力してください")
       expect(user.reload.valid_password?("password")).to be(true)
     end
   end

@@ -52,7 +52,7 @@ RSpec.describe "ユーザー登録", type: :request do
     end
 
     context "入力内容が正しい場合" do
-      it "ユーザー登録が成功し、自動ログインされること" do
+      it "8文字のパスワードでユーザー登録が成功し、自動ログインされること" do
         expect do
           post users_path, params: {
             user: {
@@ -78,6 +78,22 @@ RSpec.describe "ユーザー登録", type: :request do
     end
 
     context "入力内容が不正な場合" do
+      it "7文字のパスワードではユーザー登録に失敗すること" do
+        expect do
+          post users_path, params: {
+            user: {
+              name: "短いパスワードのユーザー",
+              email: "short-password@example.com",
+              password: "1234567",
+              password_confirmation: "1234567"
+            }
+          }
+        end.not_to change(User, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.body).to include("パスワードは8文字以上で入力してください")
+      end
+
       it "ユーザー登録に失敗し、ログイン状態にならないこと" do
         expect do
           post users_path, params: {

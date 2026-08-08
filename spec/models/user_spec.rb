@@ -97,22 +97,22 @@ RSpec.describe User, type: :model do
       expect(duplicate_user.errors[:email]).to be_present
     end
 
-    it "パスワードが3文字以上の場合は有効になる" do
+    it "パスワードが8文字の場合は有効になる" do
       user = described_class.new(
         valid_attributes.merge(
-          password: "abc",
-          password_confirmation: "abc"
+          password: "12345678",
+          password_confirmation: "12345678"
         )
       )
 
       expect(user).to be_valid
     end
 
-    it "パスワードが2文字以下の場合は無効になる" do
+    it "パスワードが7文字の場合は無効になる" do
       user = described_class.new(
         valid_attributes.merge(
-          password: "ab",
-          password_confirmation: "ab"
+          password: "1234567",
+          password_confirmation: "1234567"
         )
       )
 
@@ -183,10 +183,10 @@ RSpec.describe User, type: :model do
       expect(user.errors[:password_confirmation]).to be_present
     end
 
-    it "パスワードが3文字未満の場合は変更できない" do
-      user.password_confirmation = "ab"
+    it "パスワードが7文字の場合は変更できない" do
+      user.password_confirmation = "1234567"
 
-      expect(user.change_password("ab")).to be(false)
+      expect(user.change_password("1234567")).to be(false)
       expect(user.errors[:password]).to be_present
     end
 
