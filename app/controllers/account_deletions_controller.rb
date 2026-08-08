@@ -38,12 +38,6 @@ class AccountDeletionsController < ApplicationController
 
   private
 
-  def require_logged_in_user
-    return if logged_in?
-
-    redirect_to login_path, alert: "ログインしてください"
-  end
-
   def account_deletion_params
     params.permit(account_deletion: PERMITTED_FIELDS)[:account_deletion] || ActionController::Parameters.new
   end

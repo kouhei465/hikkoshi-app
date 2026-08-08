@@ -22,13 +22,13 @@ class MypagesController < ApplicationController
       return render_update_error(t(".invalid_current_password"))
     end
 
-    normalized_email = permitted_params[:email].to_s.strip.downcase
+    normalized_email = User.normalize_value_for(:email, permitted_params[:email])
 
     if normalized_email.blank?
       return render_update_error(t(".email_blank"))
     end
 
-    if normalized_email == @current_email.to_s.strip.downcase
+    if normalized_email == User.normalize_value_for(:email, @current_email)
       return render_update_error(t(".same_email"))
     end
 
@@ -44,12 +44,6 @@ class MypagesController < ApplicationController
   end
 
   private
-
-  def require_logged_in_user
-    return if logged_in?
-
-    redirect_to login_path, alert: "ログインしてください"
-  end
 
   def reject_google_only_user
     return unless current_user.google_only?
@@ -68,7 +62,7 @@ class MypagesController < ApplicationController
   end
 
   def email_used_by_another_user?(email)
-    User.where.not(id: current_user.id).where("LOWER(email) = ?", email).exists?
+    User.where.not(id: current_user.id).exists?(email: email)
   end
 
   def render_update_error(message)

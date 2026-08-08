@@ -1,4 +1,15 @@
 class CostListsController < ApplicationController
+  before_action :require_logged_in_user,
+                only: %i[
+                  show
+                  edit
+                  update
+                  destroy
+                  update_memo
+                  update_title
+                  compare
+                ]
+
   def new
     @cost_list = CostList.new
     build_initial_cost_items
@@ -87,8 +98,6 @@ class CostListsController < ApplicationController
   end
 
   def compare
-    return redirect_to login_path, alert: "ログインしてください" unless logged_in?
-
     ids = Array(params[:cost_list_ids]).reject(&:blank?).uniq
 
     if ids.size != 2

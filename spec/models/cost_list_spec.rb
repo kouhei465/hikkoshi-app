@@ -34,6 +34,42 @@ RSpec.describe CostList, type: :model do
 
       expect(cost_list).to be_invalid
     end
+
+    it "予算がnilの場合は有効になる" do
+      cost_list = described_class.new(user: user, title: "予算未入力", budget: nil)
+
+      expect(cost_list).to be_valid
+    end
+
+    it "予算が0の場合は有効になる" do
+      cost_list = described_class.new(user: user, title: "0円予算", budget: 0)
+
+      expect(cost_list).to be_valid
+    end
+
+    it "予算が1の場合は有効になる" do
+      cost_list = described_class.new(user: user, title: "1円予算", budget: 1)
+
+      expect(cost_list).to be_valid
+    end
+
+    it "予算が-1の場合は保存できない" do
+      cost_list = described_class.new(user: user, title: "負の予算", budget: -1)
+
+      expect(cost_list.save).to be(false)
+    end
+
+    it "予算が小数の場合は無効になる" do
+      cost_list = described_class.new(user: user, title: "小数の予算", budget: 1.5)
+
+      expect(cost_list).to be_invalid
+    end
+
+    it "予算が数値として扱えない文字列の場合は無効になる" do
+      cost_list = described_class.new(user: user, title: "不正な予算", budget: "invalid")
+
+      expect(cost_list).to be_invalid
+    end
   end
 
   describe "関連付け" do
@@ -107,6 +143,45 @@ RSpec.describe CostList, type: :model do
 
       expect(cost_list.cost_items.size).to eq(1)
       expect(cost_list.cost_items.first.name).to eq("家賃")
+    end
+
+    it "負の金額を持つ費用項目を含む場合は費用リストを保存できない" do
+      cost_list = described_class.new(
+        user: user,
+        title: "負の金額を含むリスト",
+        cost_items_attributes: {
+          "0" => {
+            name: "家賃",
+            amount: -1,
+            category: "rent",
+            status: "unchecked"
+          }
+        }
+      )
+
+      expect(cost_list.save).to be(false)
+      expect(cost_list).not_to be_persisted
+      expect(cost_list.cost_items.first).not_to be_persisted
+    end
+
+    it "予算と費用項目の金額が0の場合は保存できる" do
+      cost_list = described_class.new(
+        user: user,
+        title: "0円の費用リスト",
+        budget: 0,
+        cost_items_attributes: {
+          "0" => {
+            name: "家賃",
+            amount: 0,
+            category: "rent",
+            status: "unchecked"
+          }
+        }
+      )
+
+      expect(cost_list.save).to be(true)
+      expect(cost_list.reload.budget).to eq(0)
+      expect(cost_list.cost_items.first.reload.amount).to eq(0)
     end
 
     it "ネストされた費用項目を削除できる" do

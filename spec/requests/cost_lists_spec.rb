@@ -9,6 +9,18 @@ RSpec.describe "費用リスト", type: :request do
       expect(response.body).not_to include("リスト名")
     end
 
+    it "予算と金額の入力欄を0以上に制限すること" do
+      get new_cost_list_path
+
+      document = Nokogiri::HTML(response.body)
+      budget_input = document.at_css("input[type='number'][name='cost_list[budget]']")
+      amount_inputs = document.css("input[type='number'][name$='[amount]']")
+
+      expect(budget_input["min"]).to eq("0")
+      expect(amount_inputs).to be_present
+      expect(amount_inputs).to all(satisfy { |input| input["min"] == "0" })
+    end
+
     it "引っ越し業者費用の距離概算用UIを初期状態では非表示で用意すること" do
       get new_cost_list_path
 
@@ -78,6 +90,57 @@ RSpec.describe "費用リスト", type: :request do
       expect(response.body).to include("例：A物件の費用")
       expect(response.body).to include("未入力の場合は「引っ越し費用リスト」として保存されます。")
       expect(response.body).to include(save_session_cost_lists_path)
+    end
+  end
+
+  describe "保存済み費用リストへの未ログインアクセス" do
+    it "詳細画面へのアクセスをログイン画面へリダイレクトすること" do
+      get cost_list_path(1)
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
+    end
+
+    it "編集画面へのアクセスをログイン画面へリダイレクトすること" do
+      get edit_cost_list_path(1)
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
+    end
+
+    it "更新をログイン画面へリダイレクトすること" do
+      patch cost_list_path(1), params: { cost_list: { title: "更新後" } }
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
+    end
+
+    it "削除をログイン画面へリダイレクトすること" do
+      delete cost_list_path(1)
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
+    end
+
+    it "判断メモ更新をログイン画面へリダイレクトすること" do
+      patch update_memo_cost_list_path(1), params: { cost_list: { memo: "更新後" } }
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
+    end
+
+    it "リスト名更新をログイン画面へリダイレクトすること" do
+      patch update_title_cost_list_path(1), params: { cost_list: { title: "更新後" } }
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
+    end
+
+    it "比較画面へのアクセスをログイン画面へリダイレクトすること" do
+      get compare_cost_lists_path, params: { cost_list_ids: [ 1, 2 ] }
+
+      expect(response).to redirect_to(login_path)
+      expect(flash[:alert]).to eq("ログインしてください")
     end
   end
 
@@ -295,6 +358,7 @@ RSpec.describe "費用リスト", type: :request do
         end.not_to change(CostList, :count)
 
         expect(response).to redirect_to(login_path)
+        expect(flash[:alert]).to eq("保存するにはログインしてください")
       end
 
       it "入力したタイトルをユーザー登録後の保存に引き継ぐこと" do
@@ -442,14 +506,6 @@ RSpec.describe "費用リスト", type: :request do
   end
 
   describe "GET /cost_lists/compare" do
-    context "未ログインの場合" do
-      it "ログイン画面にリダイレクトすること" do
-        get compare_cost_lists_path, params: { cost_list_ids: [ 1, 2 ] }
-
-        expect(response).to redirect_to(login_path)
-      end
-    end
-
     context "ログイン済みの場合" do
       let(:user) do
         User.create!(

@@ -4,7 +4,8 @@ class UserSessionsController < ApplicationController
   def new; end
 
   def create
-    @user = login(params[:email], params[:password])
+    email = User.normalize_value_for(:email, params[:email])
+    @user = login(email, params[:password])
 
     if @user
       redirect_to mypage_path, notice: "ログインしました"

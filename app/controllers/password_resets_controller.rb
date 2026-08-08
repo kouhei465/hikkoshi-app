@@ -4,7 +4,7 @@ class PasswordResetsController < ApplicationController
   def new; end
 
   def create
-    email = params[:email].to_s.strip.downcase
+    email = User.normalize_value_for(:email, params[:email])
     user = User.find_by(email: email)
     user.deliver_reset_password_instructions! if user && !user.google_only?
 

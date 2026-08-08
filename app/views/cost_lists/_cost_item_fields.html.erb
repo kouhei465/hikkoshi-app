@@ -24,6 +24,7 @@
       <%= item_form.label :amount, "金額", class: "form-label" %>
       <%= item_form.number_field :amount,
                                  class: "form-control",
+                                 min: 0,
                                  data: { nested_form_target: "amountInput" } %>
 
       <% if show_estimate %>

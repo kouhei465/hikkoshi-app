@@ -1,6 +1,36 @@
 require "rails_helper"
 
 RSpec.describe User, type: :model do
+  describe "メールアドレスの正規化" do
+    let(:password_attributes) do
+      {
+        name: "正規化テストユーザー",
+        password: "password",
+        password_confirmation: "password"
+      }
+    end
+
+    it "大文字を含むメールアドレスを小文字にして保存する" do
+      user = described_class.create!(password_attributes.merge(email: "User@Example.COM"))
+
+      expect(user.reload.email).to eq("user@example.com")
+    end
+
+    it "メールアドレスの前後の空白を除去して保存する" do
+      user = described_class.create!(password_attributes.merge(email: "  user@example.com  "))
+
+      expect(user.reload.email).to eq("user@example.com")
+    end
+
+    it "nilは正規化時にもnilのまま扱う" do
+      user = described_class.new(password_attributes.merge(email: nil))
+
+      expect(described_class.normalize_value_for(:email, nil)).to be_nil
+      expect(user.email).to be_nil
+      expect(user).to be_invalid
+    end
+  end
+
   describe "バリデーション" do
     let(:valid_attributes) do
       {
@@ -57,22 +87,32 @@ RSpec.describe User, type: :model do
       expect(duplicate_user).to be_invalid
     end
 
-    it "パスワードが3文字以上の場合は有効になる" do
+    it "大文字小文字だけが異なるメールアドレスは重複登録できない" do
+      described_class.create!(valid_attributes)
+      duplicate_user = described_class.new(
+        valid_attributes.merge(name: "別のユーザー", email: "TEST@EXAMPLE.COM")
+      )
+
+      expect(duplicate_user).to be_invalid
+      expect(duplicate_user.errors[:email]).to be_present
+    end
+
+    it "パスワードが8文字の場合は有効になる" do
       user = described_class.new(
         valid_attributes.merge(
-          password: "abc",
-          password_confirmation: "abc"
+          password: "12345678",
+          password_confirmation: "12345678"
         )
       )
 
       expect(user).to be_valid
     end
 
-    it "パスワードが2文字以下の場合は無効になる" do
+    it "パスワードが7文字の場合は無効になる" do
       user = described_class.new(
         valid_attributes.merge(
-          password: "ab",
-          password_confirmation: "ab"
+          password: "1234567",
+          password_confirmation: "1234567"
         )
       )
 
@@ -143,10 +183,10 @@ RSpec.describe User, type: :model do
       expect(user.errors[:password_confirmation]).to be_present
     end
 
-    it "パスワードが3文字未満の場合は変更できない" do
-      user.password_confirmation = "ab"
+    it "パスワードが7文字の場合は変更できない" do
+      user.password_confirmation = "1234567"
 
-      expect(user.change_password("ab")).to be(false)
+      expect(user.change_password("1234567")).to be(false)
       expect(user.errors[:password]).to be_present
     end
 

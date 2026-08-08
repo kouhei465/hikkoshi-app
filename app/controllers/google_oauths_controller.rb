@@ -77,7 +77,7 @@ class GoogleOauthsController < ApplicationController
     return unless user_info.is_a?(Hash)
 
     uid = @user_hash[:uid].to_s.strip
-    email = user_info["email"].to_s.strip.downcase
+    email = User.normalize_value_for(:email, user_info["email"])
     name = user_info["name"].to_s.strip
 
     return if uid.blank? || email.blank? || name.blank?
