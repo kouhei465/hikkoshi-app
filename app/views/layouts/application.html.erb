@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <% if Rails.env.production? %>
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-ELMP38K018"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-ELMP38K018');
+      </script>
+    <% end %>
+
     <title><%= content_for(:title).presence || "引っ越し費用まとめ帳" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
