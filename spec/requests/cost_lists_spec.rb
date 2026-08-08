@@ -9,6 +9,18 @@ RSpec.describe "費用リスト", type: :request do
       expect(response.body).not_to include("リスト名")
     end
 
+    it "予算と金額の入力欄を0以上に制限すること" do
+      get new_cost_list_path
+
+      document = Nokogiri::HTML(response.body)
+      budget_input = document.at_css("input[type='number'][name='cost_list[budget]']")
+      amount_inputs = document.css("input[type='number'][name$='[amount]']")
+
+      expect(budget_input["min"]).to eq("0")
+      expect(amount_inputs).to be_present
+      expect(amount_inputs).to all(satisfy { |input| input["min"] == "0" })
+    end
+
     it "引っ越し業者費用の距離概算用UIを初期状態では非表示で用意すること" do
       get new_cost_list_path
 

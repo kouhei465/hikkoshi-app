@@ -18,6 +18,15 @@ RSpec.describe CostItem, type: :model do
   end
 
   describe "バリデーション" do
+    let(:valid_cost_item_attributes) do
+      {
+        cost_list: cost_list,
+        name: "洗濯機",
+        category: :furniture,
+        status: :confirmed
+      }
+    end
+
     it "有効な属性の場合は保存できる" do
       cost_item = described_class.new(
         cost_list: cost_list,
@@ -63,6 +72,48 @@ RSpec.describe CostItem, type: :model do
         status: :confirmed,
         amount: 5_000
       )
+
+      expect(cost_item).to be_invalid
+    end
+
+    it "金額がnilの場合は有効になる" do
+      cost_item = described_class.new(valid_cost_item_attributes.merge(amount: nil))
+
+      expect(cost_item).to be_valid
+    end
+
+    it "金額が0の場合は有効になる" do
+      cost_item = described_class.new(valid_cost_item_attributes.merge(amount: 0))
+
+      expect(cost_item).to be_valid
+    end
+
+    it "金額が1の場合は有効になる" do
+      cost_item = described_class.new(valid_cost_item_attributes.merge(amount: 1))
+
+      expect(cost_item).to be_valid
+    end
+
+    it "金額が-1の場合は無効になる" do
+      cost_item = described_class.new(valid_cost_item_attributes.merge(amount: -1))
+
+      expect(cost_item).to be_invalid
+    end
+
+    it "金額が大きな負数の場合は無効になる" do
+      cost_item = described_class.new(valid_cost_item_attributes.merge(amount: -50_000))
+
+      expect(cost_item).to be_invalid
+    end
+
+    it "金額が小数の場合は無効になる" do
+      cost_item = described_class.new(valid_cost_item_attributes.merge(amount: 1.5))
+
+      expect(cost_item).to be_invalid
+    end
+
+    it "金額が数値として扱えない文字列の場合は無効になる" do
+      cost_item = described_class.new(valid_cost_item_attributes.merge(amount: "invalid"))
 
       expect(cost_item).to be_invalid
     end

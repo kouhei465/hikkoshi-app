@@ -18,7 +18,7 @@
 
   <div class="mb-3">
     <%= f.label :budget, "予算" %>
-    <%= f.number_field :budget, class: "form-control" %>
+    <%= f.number_field :budget, class: "form-control", min: 0 %>
   </div>
 
   <%# 費用項目をカテゴリごとに入力できるように表示 %>

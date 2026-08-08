@@ -4,6 +4,12 @@ class CostList < ApplicationRecord
   has_many :cost_items, dependent: :destroy
 
   validates :title, presence: true, length: { maximum: 50 }
+  validates :budget,
+            numericality: {
+              only_integer: true,
+              greater_than_or_equal_to: 0
+            },
+            allow_nil: true
 
   accepts_nested_attributes_for :cost_items,
                                 allow_destroy: true,
