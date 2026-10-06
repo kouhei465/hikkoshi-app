@@ -36,7 +36,7 @@ RSpec.describe "費用リスト", type: :request do
       expect(estimate_fields.text).to include("出発地（郵便番号または住所）")
       expect(estimate_fields.text).to include("到着地（郵便番号または住所）")
       expect(estimate_fields.css("input").map { |input| input["placeholder"] }).to all(
-        eq("例：870-0831 または 大分県大分市要町1-1")
+        eq("例：870-0831 または 大分県大分市")
       )
       expect(estimate_fields.css("input").map { |input| input["name"] }).to all(be_nil)
       expect(estimate_fields.text).to include("距離から概算する")
