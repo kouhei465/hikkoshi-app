@@ -13,7 +13,7 @@ class UserSessionsController < ApplicationController
       redirect_to(draft ? result_cost_lists_path : mypage_path, notice: "ログインしました")
     else
       flash.now[:alert] = "ログインに失敗しました"
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 

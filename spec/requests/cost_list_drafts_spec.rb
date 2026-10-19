@@ -87,7 +87,7 @@ RSpec.describe "費用入力の一時保存", type: :request do
   it "ログイン失敗時も一時データを保持する" do
     draft = create_draft
     post login_path, params: { email: user.email, password: "incorrect" }
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(draft.reload).to be_present
     get result_cost_lists_path
     expect(response.body).to include("確認前の費用")
@@ -99,7 +99,7 @@ RSpec.describe "費用入力の一時保存", type: :request do
     memo = "長文の確認事項。" * 1_000
     post save_session_cost_lists_path, params: { cost_list: { title: "あ" * 51, memo: } }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(response.body).to include("リスト名は50文字以内", memo)
     expect(draft.reload.data["memo"]).to eq(memo)
     expect(response.headers["Set-Cookie"].to_s.bytesize).to be < 4_096

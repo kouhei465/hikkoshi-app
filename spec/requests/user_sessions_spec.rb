@@ -99,7 +99,7 @@ RSpec.describe "ログイン", type: :request do
           password: "wrong-password"
         }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         get mypage_path
 

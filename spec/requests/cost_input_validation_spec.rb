@@ -22,7 +22,7 @@ RSpec.describe "費用入力のエラー表示", type: :request do
       }
     }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     document = Nokogiri::HTML(response.body)
     expect(document.at_css("input[name='cost_list[budget]']")["value"]).to eq("300000")
     expect(document.at_css("input[name$='[amount]'][value='50000']")).to be_present
@@ -55,7 +55,7 @@ RSpec.describe "費用入力のエラー表示", type: :request do
       }
     }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     document = Nokogiri::HTML(response.body)
     expect(document.css("[role='alert']").text).to include("予算", "金額", "0以上")
     expect(document.at_css("input[name$='[amount]'][value='-50000']")).to be_present
@@ -73,7 +73,7 @@ RSpec.describe "費用入力のエラー表示", type: :request do
       }
     }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(response.body).to include("費用名を入力してください", "編集中のリスト")
     expect(Nokogiri::HTML(response.body).at_css("input[name$='[amount]'][value='50000']")).to be_present
     expect(item.reload.amount).to eq(20_000)
@@ -91,7 +91,7 @@ RSpec.describe "費用入力のエラー表示", type: :request do
 
     post save_session_cost_lists_path, params: { cost_list: { title: invalid_title, memo: "保存前の判断メモ" } }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(response.body).to include("リスト名は50文字以内で入力してください", "保存前の判断メモ", invalid_title)
     expect(user.cost_lists.count).to eq(0)
 
@@ -117,7 +117,7 @@ RSpec.describe "費用入力のエラー表示", type: :request do
       }
     }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     document = Nokogiri::HTML(response.body)
     destroy_field = document.at_css("input[name='cost_list[cost_items_attributes][0][_destroy]']")
     expect(destroy_field["value"]).to eq("1")

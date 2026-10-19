@@ -90,7 +90,7 @@ RSpec.describe "ユーザー登録", type: :request do
           }
         end.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("パスワードは8文字以上で入力してください")
       end
 
@@ -106,7 +106,7 @@ RSpec.describe "ユーザー登録", type: :request do
           }
         end.not_to change(User, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(User.find_by(email: "invalid-user@example.com")).to be_nil
 
         get mypage_path

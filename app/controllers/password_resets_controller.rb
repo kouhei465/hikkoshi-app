@@ -19,11 +19,11 @@ class PasswordResetsController < ApplicationController
 
     if password.nil?
       @user.errors.add(:password, :blank)
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     elsif @user.change_password(password)
       redirect_to login_path, notice: t(".success")
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

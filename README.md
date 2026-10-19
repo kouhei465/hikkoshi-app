@@ -109,7 +109,7 @@ Googleのみで登録したアカウントは、メールアドレス変更と�
 
 | 要素 | 使用技術 |
 | --- | --- |
-| 言語・フレームワーク | Ruby 3.4.8 / Ruby on Rails 7.2.3.1 |
+| 言語・フレームワーク | Ruby 3.4.8 / Ruby on Rails 8.1.4 |
 | データベース | PostgreSQL |
 | 認証 | Sorcery / Google OAuth |
 | フロントエンド | Turbo / Stimulus / Bootstrap 5 / Chart.js |
