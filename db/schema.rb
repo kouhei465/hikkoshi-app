@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_02_000000) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -33,6 +33,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["cost_list_id"], name: "index_cost_items_on_cost_list_id"
+  end
+
+  create_table "cost_list_drafts", force: :cascade do |t|
+    t.bigint "user_id"
+    t.jsonb "data", default: {}, null: false
+    t.string "token_digest", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_cost_list_drafts_on_expires_at"
+    t.index ["token_digest"], name: "index_cost_list_drafts_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_cost_list_drafts_on_user_id"
   end
 
   create_table "cost_lists", force: :cascade do |t|
@@ -62,5 +74,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_000000) do
 
   add_foreign_key "authentications", "users"
   add_foreign_key "cost_items", "cost_lists"
+  add_foreign_key "cost_list_drafts", "users"
   add_foreign_key "cost_lists", "users"
 end

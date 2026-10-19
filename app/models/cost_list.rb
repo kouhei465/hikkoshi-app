@@ -1,9 +1,11 @@
 class CostList < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true
 
   has_many :cost_items, dependent: :destroy
 
-  validates :title, presence: true, length: { maximum: 50 }
+  # 計算だけならゲストでも利用できる。保存時にはユーザーとリスト名を必須にする。
+  validates :user, :title, presence: true, unless: -> { validation_context == :calculation }
+  validates :title, length: { maximum: 50 }
   validates :budget,
             numericality: {
               only_integer: true,
@@ -18,7 +20,7 @@ class CostList < ApplicationRecord
   private
 
   def blank_cost_item?(attributes)
-    ActiveModel::Type::Boolean.new.cast(attributes["_destroy"]) == false &&
+    ActiveModel::Type::Boolean.new.cast(attributes["_destroy"]) != true &&
       attributes["name"].blank? &&
       attributes["amount"].blank?
   end

@@ -12,6 +12,7 @@ class User < ApplicationRecord
   validates :password_confirmation, presence: true, if: :password_required?
 
   has_many :cost_lists, dependent: :destroy
+  has_many :cost_list_drafts, dependent: :destroy
   has_many :authentications, dependent: :destroy, inverse_of: :user
 
   def google_only?

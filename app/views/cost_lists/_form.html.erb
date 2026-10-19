@@ -1,3 +1,5 @@
+<%= render "cost_lists/errors", cost_list: cost_list %>
+
 <%= form_with model: cost_list,
               data: {
                 turbo: false,
@@ -39,10 +41,16 @@
       <div data-nested-form-target="container" data-category="<%= category %>">
         <% category_items.each do |cost_item| %>
           <%= f.fields_for :cost_items, cost_item do |item_form| %>
-            <%= render "cost_item_fields",
-                       item_form: item_form,
-                       show_estimate: show_estimate,
-                       estimate_text: estimate_text %>
+            <% if cost_item.marked_for_destruction? %>
+              <%# 更新失敗後も、削除した行の指定を次の送信へ引き継ぐ %>
+              <%= item_form.hidden_field :id %>
+              <%= item_form.hidden_field :_destroy, value: 1 %>
+            <% else %>
+              <%= render "cost_item_fields",
+                         item_form: item_form,
+                         show_estimate: show_estimate,
+                         estimate_text: estimate_text %>
+            <% end %>
           <% end %>
         <% end %>
       </div>

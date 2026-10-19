@@ -12,20 +12,28 @@
     <div class="col-md-4">
       <%= item_form.label :name, "費用の種類", class: "form-label" %>
       <%= item_form.text_field :name,
-                               class: "form-control",
+                               class: "form-control #{'is-invalid' if item_form.object.errors[:name].any?}",
+                               aria: { invalid: item_form.object.errors[:name].any? },
                                list: "cost-item-name-options-#{item_form.object.category}",
                                data: {
                                  nested_form_target: "nameSelect",
                                  action: "change->nested-form#handleNameChange"
                                } %>
+      <% item_form.object.errors.full_messages_for(:name).each do |message| %>
+        <p class="invalid-feedback d-block mb-0"><%= message %></p>
+      <% end %>
     </div>
 
     <div class="col-md-3">
       <%= item_form.label :amount, "金額", class: "form-label" %>
       <%= item_form.number_field :amount,
-                                 class: "form-control",
+                                 class: "form-control #{'is-invalid' if item_form.object.errors[:amount].any?}",
+                                 aria: { invalid: item_form.object.errors[:amount].any? },
                                  min: 0,
                                  data: { nested_form_target: "amountInput" } %>
+      <% item_form.object.errors.full_messages_for(:amount).each do |message| %>
+        <p class="invalid-feedback d-block mb-0"><%= message %></p>
+      <% end %>
 
       <% if show_estimate %>
         <p class="text-muted small mt-2 mb-0">参考概算：<%= estimate_text %></p>

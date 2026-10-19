@@ -110,6 +110,16 @@ RSpec.describe CostList, type: :model do
   end
 
   describe "費用項目のネスト入力" do
+    it "削除指定がない場合も費用名と金額が両方空の行を無視する" do
+      cost_list = described_class.new(
+        cost_items_attributes: {
+          "0" => { name: "", amount: "", category: "rent", status: "unchecked" }
+        }
+      )
+
+      expect(cost_list.cost_items).to be_empty
+    end
+
     it "費用名と金額が両方空の場合は費用項目を作成しない" do
       cost_list = described_class.new(
         user: user,
@@ -206,6 +216,46 @@ RSpec.describe CostList, type: :model do
       )
 
       expect(CostItem.exists?(cost_item.id)).to be false
+    end
+  end
+
+  describe "計算用のバリデーション" do
+    it "ユーザーと保存用タイトルがなくても計算できる" do
+      cost_list = described_class.new(
+        budget: 300_000,
+        cost_items_attributes: {
+          "0" => { name: "引っ越し業者費用", amount: "", category: "moving", status: "unchecked" }
+        }
+      )
+
+      expect(cost_list.valid?(:calculation)).to be(true)
+      expect(cost_list).to be_invalid
+    end
+
+    it "金額だけを入力した費用項目は計算前に検出する" do
+      cost_list = described_class.new(
+        cost_items_attributes: {
+          "0" => { name: "", amount: 50_000, category: "moving", status: "unchecked" }
+        }
+      )
+
+      expect(cost_list.valid?(:calculation)).to be(false)
+      expect(cost_list.cost_items.first.errors[:name]).to be_present
+      expect(cost_list.errors[:user]).to be_empty
+      expect(cost_list.errors[:title]).to be_empty
+    end
+
+    it "計算時にも予算と費用項目の金額を検証する" do
+      cost_list = described_class.new(
+        budget: -1,
+        cost_items_attributes: {
+          "0" => { name: "家賃", amount: -1, category: "rent", status: "unchecked" }
+        }
+      )
+
+      expect(cost_list.valid?(:calculation)).to be(false)
+      expect(cost_list.errors[:budget]).to be_present
+      expect(cost_list.cost_items.first.errors[:amount]).to be_present
     end
   end
 end
