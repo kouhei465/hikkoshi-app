@@ -266,7 +266,7 @@ RSpec.describe "費用リスト", type: :request do
         cost_list: { title: "", budget: 400000 }
       }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(cost_list.reload.title).to eq("変更前のリスト名")
       expect(cost_list.budget).to eq(300000)
     end

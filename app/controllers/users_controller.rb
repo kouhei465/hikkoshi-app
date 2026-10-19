@@ -25,7 +25,7 @@ class UsersController < ApplicationController
       end
     else
       flash.now[:alert] = "ユーザー登録に失敗しました"
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 

@@ -12,7 +12,7 @@ class CostListsController < ApplicationController
     @cost_list = CostList.new(attributes)
 
     unless @cost_list.valid?(:calculation)
-      return render :new, status: :unprocessable_entity
+      return render :new, status: :unprocessable_content
     end
 
     store_cost_list_draft(attributes)
@@ -37,7 +37,7 @@ class CostListsController < ApplicationController
     if @cost_list.update(cost_list_params)
       redirect_to cost_list_path(@cost_list), notice: "費用内容を更新しました"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -53,7 +53,7 @@ class CostListsController < ApplicationController
     else
       calculate_result
       flash.now[:alert] = "判断メモの更新に失敗しました"
-      render :show, status: :unprocessable_entity
+      render :show, status: :unprocessable_content
     end
   end
 
@@ -85,7 +85,7 @@ class CostListsController < ApplicationController
       redirect_to mypage_path, notice: "費用リストを保存しました"
     else
       calculate_result
-      render :result, status: :unprocessable_entity
+      render :result, status: :unprocessable_content
     end
   end
 
