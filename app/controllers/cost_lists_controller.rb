@@ -1,14 +1,6 @@
 class CostListsController < ApplicationController
-  before_action :require_logged_in_user,
-                only: %i[
-                  show
-                  edit
-                  update
-                  destroy
-                  update_memo
-                  update_title
-                  compare
-                ]
+  before_action :require_logged_in_user, only: %i[show edit update destroy update_memo update_title compare]
+  before_action :set_cost_list, only: %i[show edit update destroy update_memo update_title]
 
   def new
     @cost_list = CostList.new
@@ -16,30 +8,32 @@ class CostListsController < ApplicationController
   end
 
   def create
-    session[:cost_list_params] = cost_list_params.to_h
+    attributes = cost_list_params.to_h
+    @cost_list = CostList.new(attributes)
+
+    unless @cost_list.valid?(:calculation)
+      return render :new, status: :unprocessable_entity
+    end
+
+    store_cost_list_draft(attributes)
 
     redirect_to result_cost_lists_path
   end
 
   def result
-    return redirect_to new_cost_list_path if session[:cost_list_params].blank?
+    return redirect_to new_cost_list_path unless current_cost_list_draft
 
-    @cost_list = CostList.new(session[:cost_list_params])
+    @cost_list = CostList.new(current_cost_list_draft.data)
     calculate_result
   end
 
   def show
-    @cost_list = current_user.cost_lists.find(params[:id])
     calculate_result
   end
 
-  def edit
-    @cost_list = current_user.cost_lists.find(params[:id])
-  end
+  def edit; end
 
   def update
-    @cost_list = current_user.cost_lists.find(params[:id])
-
     if @cost_list.update(cost_list_params)
       redirect_to cost_list_path(@cost_list), notice: "費用内容を更新しました"
     else
@@ -48,15 +42,12 @@ class CostListsController < ApplicationController
   end
 
   def destroy
-    @cost_list = current_user.cost_lists.find(params[:id])
     @cost_list.destroy!
 
     redirect_to mypage_path, notice: "費用リストを削除しました"
   end
 
   def update_memo
-    @cost_list = current_user.cost_lists.find(params[:id])
-
     if @cost_list.update(memo_params)
       redirect_to cost_list_path(@cost_list), notice: "判断メモを更新しました"
     else
@@ -67,33 +58,34 @@ class CostListsController < ApplicationController
   end
 
   def update_title
-    @cost_list = current_user.cost_lists.find(params[:id])
-
     if @cost_list.update(title_params)
       redirect_to mypage_path, notice: "リスト名を変更しました"
     else
-      redirect_to mypage_path, alert: "リスト名を変更できませんでした"
+      redirect_to mypage_path, alert: "リスト名を変更できませんでした：#{@cost_list.errors.full_messages.to_sentence}"
     end
   end
 
   def save_session
-    return redirect_to mypage_path, alert: "保存する費用データがありません" if session[:cost_list_params].blank?
+    return redirect_to mypage_path, alert: "保存する費用データがありません" unless current_cost_list_draft
 
-    submitted_title = params.dig(:cost_list, :title).to_s.strip
-    memo = params.dig(:cost_list, :memo)
+    attributes = current_cost_list_draft.data.deep_dup
+    submitted = params.fetch(:cost_list, ActionController::Parameters.new).permit(:title, :memo)
+    attributes["title"] = submitted[:title].to_s.strip.presence || "引っ越し費用リスト" if submitted.key?(:title)
+    attributes["title"] = "引っ越し費用リスト" if attributes["title"].blank?
+    attributes["memo"] = submitted[:memo] if submitted.key?(:memo)
 
-    session[:cost_list_params]["title"] = submitted_title.presence || "引っ越し費用リスト"
-    session[:cost_list_params]["memo"] = memo if memo
+    store_cost_list_draft(attributes)
 
     return redirect_to login_path, alert: "保存するにはログインしてください" unless logged_in?
 
-    @cost_list = current_user.cost_lists.build(session[:cost_list_params])
+    @cost_list = current_user.cost_lists.build(attributes)
 
     if @cost_list.save
-      session.delete(:cost_list_params)
+      discard_cost_list_draft
       redirect_to mypage_path, notice: "費用リストを保存しました"
     else
-      redirect_to result_cost_lists_path, alert: "保存に失敗しました"
+      calculate_result
+      render :result, status: :unprocessable_entity
     end
   end
 
@@ -122,6 +114,10 @@ class CostListsController < ApplicationController
   end
 
   private
+
+  def set_cost_list
+    @cost_list = current_user.cost_lists.find(params[:id])
+  end
 
   def cost_list_params
     params.require(:cost_list).permit(

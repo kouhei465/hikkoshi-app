@@ -36,8 +36,10 @@ class GoogleOauthsController < ApplicationController
       return redirect_to(login_path, alert: t("google_oauths.failed"))
     end
 
+    draft = current_cost_list_draft
     if login_from(PROVIDER)
-      return redirect_to(mypage_path, notice: t("google_oauths.logged_in"))
+      retain_cost_list_draft_after_login(draft)
+      return redirect_to(draft ? result_cost_lists_path : mypage_path, notice: t("google_oauths.logged_in"))
     end
 
     register_google_user
@@ -93,25 +95,25 @@ class GoogleOauthsController < ApplicationController
   end
 
   def finish_registration(user)
-    guest_attributes = session[:cost_list_params]&.deep_dup
-    save_result = GuestCostListSaver.call(user:, attributes: guest_attributes)
+    draft = current_cost_list_draft
+    saved_cost_list = GuestCostListSaver.call(user:, attributes: draft&.data)
 
-    session.delete(:cost_list_params) if save_result == :saved
+    discard_cost_list_draft if saved_cost_list&.persisted?
     session.delete(:incomplete_user)
     reset_sorcery_session
     auto_login(user)
     after_login!(user)
-    session[:cost_list_params] = guest_attributes if save_result == :failed
+    save_failed = saved_cost_list && !saved_cost_list.persisted?
+    retain_cost_list_draft_after_login(draft) if save_failed
 
-    redirect_to mypage_path, **registration_flash(save_result)
+    redirect_to(save_failed ? result_cost_lists_path : mypage_path, **registration_flash(saved_cost_list))
   end
 
-  def registration_flash(save_result)
-    case save_result
-    when :saved
+  def registration_flash(saved_cost_list)
+    if saved_cost_list&.persisted?
       { notice: t("google_oauths.registered_with_cost_list") }
-    when :failed
-      { alert: t("google_oauths.cost_list_failed") }
+    elsif saved_cost_list
+      { alert: "#{t('google_oauths.cost_list_failed')}：#{saved_cost_list.errors.full_messages.to_sentence}" }
     else
       { notice: t("google_oauths.registered") }
     end

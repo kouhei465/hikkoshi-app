@@ -9,14 +9,17 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
 
     if @user.save
+      draft = current_cost_list_draft
       auto_login(@user)
+      saved_cost_list = GuestCostListSaver.call(user: @user, attributes: draft&.data)
 
-      case GuestCostListSaver.call(user: @user, attributes: session[:cost_list_params])
-      when :saved
-        session.delete(:cost_list_params)
+      if saved_cost_list&.persisted?
+        discard_cost_list_draft
         redirect_to mypage_path, notice: "ユーザー登録と費用リストの保存が完了しました"
-      when :failed
-        redirect_to mypage_path, alert: "ユーザー登録は完了しましたが、費用リストの保存に失敗しました"
+      elsif saved_cost_list
+        retain_cost_list_draft_after_login(draft)
+        redirect_to result_cost_lists_path,
+                    alert: "ユーザー登録は完了しましたが、費用リストの保存に失敗しました：#{saved_cost_list.errors.full_messages.to_sentence}"
       else
         redirect_to mypage_path, notice: "ユーザー登録が完了しました"
       end

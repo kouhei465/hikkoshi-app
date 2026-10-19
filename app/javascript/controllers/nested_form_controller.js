@@ -46,14 +46,14 @@ export default class extends Controller {
   }
 
   remove(event) {
-    const item = event.currentTarget.closest("[data-nested-form-target='item']")
+    const item = this.itemForEvent(event)
 
     if (item.dataset.newRecord === "true") {
       item.remove()
       return
     }
 
-    item.querySelector("[data-nested-form-target='destroyField']").value = "1"
+    this.targetInItem(item, "destroyField").value = "1"
     item.hidden = true
   }
 
@@ -69,8 +69,8 @@ export default class extends Controller {
   }
 
   applyEstimateAmount(event) {
-    const item = event.currentTarget.closest("[data-nested-form-target='item']")
-    const amountInput = item.querySelector("[data-nested-form-target~='amountInput']")
+    const item = this.itemForEvent(event)
+    const amountInput = this.targetInItem(item, "amountInput")
 
     this.hideCustomNameEstimateMessage(item)
     this.hideRentEstimateMessage(item)
@@ -104,21 +104,21 @@ export default class extends Controller {
   }
 
   clearRentEstimateMessage(event) {
-    const item = event.currentTarget.closest("[data-nested-form-target='item']")
+    const item = this.itemForEvent(event)
 
     this.hideRentEstimateMessage(item)
   }
 
   toggleCustomNameEstimateMessage(item) {
-    const statusSelect = item.querySelector("[data-nested-form-target~='statusSelect']")
+    const statusSelect = this.targetInItem(item, "statusSelect")
     const shouldShow = statusSelect.value === "estimated" && !this.hasKnownName(item)
 
-    item.querySelector("[data-nested-form-target~='customNameEstimateMessage']")
+    this.targetInItem(item, "customNameEstimateMessage")
       .classList.toggle("d-none", !shouldShow)
   }
 
   hasKnownName(item) {
-    const nameInput = item.querySelector("[data-nested-form-target~='nameSelect']")
+    const nameInput = this.targetInItem(item, "nameSelect")
     const datalist = document.getElementById(nameInput.getAttribute("list"))
 
     return Array.from(datalist?.options || []).some((option) => option.value === nameInput.value)
@@ -135,9 +135,9 @@ export default class extends Controller {
   async calculateMovingEstimate(event) {
     event.preventDefault()
 
-    const item = event.currentTarget.closest("[data-nested-form-target='item']")
-    const origin = item.querySelector("[data-nested-form-target~='movingOrigin']").value.trim()
-    const destination = item.querySelector("[data-nested-form-target~='movingDestination']").value.trim()
+    const item = this.itemForEvent(event)
+    const origin = this.targetInItem(item, "movingOrigin").value.trim()
+    const destination = this.targetInItem(item, "movingDestination").value.trim()
 
     this.hideMovingEstimateFeedback(item)
 
@@ -147,8 +147,8 @@ export default class extends Controller {
       return
     }
 
-    const button = item.querySelector("[data-nested-form-target~='movingEstimateButton']")
-    const amountInput = item.querySelector("[data-nested-form-target~='amountInput']")
+    const button = this.targetInItem(item, "movingEstimateButton")
+    const amountInput = this.targetInItem(item, "amountInput")
     button.disabled = true
     button.textContent = "計算中…"
 
@@ -187,9 +187,9 @@ export default class extends Controller {
       amountInput.value = payload.estimated_amount
       item.dataset.autoEstimateAmount = payload.estimated_amount
 
-      const distance = item.querySelector("[data-nested-form-target~='movingDistance']")
+      const distance = this.targetInItem(item, "movingDistance")
       distance.textContent = payload.distance_km.toLocaleString("ja-JP", { maximumFractionDigits: 1 })
-      item.querySelector("[data-nested-form-target~='movingEstimateResult']").classList.remove("d-none")
+      this.targetInItem(item, "movingEstimateResult").classList.remove("d-none")
     } catch (_error) {
       this.showMovingEstimateError(item, "距離を計算できませんでした。時間をおいて再度お試しください")
     } finally {
@@ -208,12 +208,12 @@ export default class extends Controller {
   }
 
   hideMovingEstimateFeedback(item) {
-    item.querySelector("[data-nested-form-target~='movingEstimateResult']").classList.add("d-none")
-    item.querySelector("[data-nested-form-target~='movingEstimateError']").classList.add("d-none")
+    this.targetInItem(item, "movingEstimateResult").classList.add("d-none")
+    this.targetInItem(item, "movingEstimateError").classList.add("d-none")
   }
 
   showMovingEstimateError(item, message) {
-    const error = item.querySelector("[data-nested-form-target~='movingEstimateError']")
+    const error = this.targetInItem(item, "movingEstimateError")
     error.textContent = message
     error.classList.remove("d-none")
   }
@@ -223,7 +223,7 @@ export default class extends Controller {
       return
     }
 
-    const fields = item.querySelector("[data-nested-form-target~='movingEstimateFields']")
+    const fields = this.targetInItem(item, "movingEstimateFields")
 
     if (!fields) {
       return
@@ -233,8 +233,8 @@ export default class extends Controller {
   }
 
   shouldShowMovingEstimateFields(item) {
-    const nameSelect = item.querySelector("[data-nested-form-target~='nameSelect']")
-    const statusSelect = item.querySelector("[data-nested-form-target~='statusSelect']")
+    const nameSelect = this.targetInItem(item, "nameSelect")
+    const statusSelect = this.targetInItem(item, "statusSelect")
 
     return item.dataset.category === "moving" &&
       nameSelect.value === "引っ越し業者費用" &&
@@ -250,28 +250,28 @@ export default class extends Controller {
       return this.rentAmount()
     }
 
-    const nameInput = item.querySelector("[data-nested-form-target~='nameSelect']")
+    const nameInput = this.targetInItem(item, "nameSelect")
     const estimateAmountByName = this.estimateAmountsByNameValue[nameInput.value]
 
     return estimateAmountByName || item.dataset.referenceEstimateAmount
   }
 
   needsRentAmount(item) {
-    const nameSelect = item.querySelector("[data-nested-form-target~='nameSelect']")
+    const nameSelect = this.targetInItem(item, "nameSelect")
 
     return item.dataset.category === "rent" && nameSelect.value !== "家賃"
   }
 
   needsMovingDistanceEstimate(item) {
-    const nameSelect = item.querySelector("[data-nested-form-target~='nameSelect']")
+    const nameSelect = this.targetInItem(item, "nameSelect")
 
     return item.dataset.category === "moving" && nameSelect.value === "引っ越し業者費用"
   }
 
   rentAmount() {
     const rentItem = this.itemTargets.find((item) => {
-      const nameSelect = item.querySelector("[data-nested-form-target~='nameSelect']")
-      const destroyField = item.querySelector("[data-nested-form-target~='destroyField']")
+      const nameSelect = this.targetInItem(item, "nameSelect")
+      const destroyField = this.targetInItem(item, "destroyField")
 
       return item.dataset.category === "rent" &&
         nameSelect.value === "家賃" &&
@@ -279,29 +279,31 @@ export default class extends Controller {
         !item.hidden
     })
 
-    return rentItem?.querySelector("[data-nested-form-target~='amountInput']").value
+    if (rentItem) {
+      return this.targetInItem(rentItem, "amountInput").value
+    }
   }
 
   showRentEstimateMessage(item) {
-    item.querySelector("[data-nested-form-target~='rentEstimateMessage']").classList.remove("d-none")
+    this.targetInItem(item, "rentEstimateMessage").classList.remove("d-none")
   }
 
   hideRentEstimateMessage(item) {
-    item.querySelector("[data-nested-form-target~='rentEstimateMessage']").classList.add("d-none")
+    this.targetInItem(item, "rentEstimateMessage").classList.add("d-none")
   }
 
   showCustomNameEstimateMessage(item) {
-    item.querySelector("[data-nested-form-target~='customNameEstimateMessage']").classList.remove("d-none")
+    this.targetInItem(item, "customNameEstimateMessage").classList.remove("d-none")
   }
 
   hideCustomNameEstimateMessage(item) {
-    item.querySelector("[data-nested-form-target~='customNameEstimateMessage']").classList.add("d-none")
+    this.targetInItem(item, "customNameEstimateMessage").classList.add("d-none")
   }
 
   handleNameChange(event) {
-    const item = event.currentTarget.closest("[data-nested-form-target='item']")
-    const amountInput = item.querySelector("[data-nested-form-target~='amountInput']")
-    const statusSelect = item.querySelector("[data-nested-form-target~='statusSelect']")
+    const item = this.itemForEvent(event)
+    const amountInput = this.targetInItem(item, "amountInput")
+    const statusSelect = this.targetInItem(item, "statusSelect")
 
     this.hideCustomNameEstimateMessage(item)
     this.hideRentEstimateMessage(item)
@@ -342,5 +344,13 @@ export default class extends Controller {
     if (this.needsRentAmount(item)) {
       this.showRentEstimateMessage(item)
     }
+  }
+
+  itemForEvent(event) {
+    return event.currentTarget.closest("[data-nested-form-target='item']")
+  }
+
+  targetInItem(item, name) {
+    return item.querySelector(`[data-nested-form-target~='${name}']`)
   }
 }

@@ -1,7 +1,9 @@
-<%# 金額が入力されている費用項目のみ表示対象にする %>
-<% display_items = cost_list.cost_items.select { |item| item.amount.to_i.positive? } %>
-<%# 表示対象の中に概算項目が含まれているかを判定 %>
-<% has_estimated_items = display_items.any?(&:estimated?) %>
+<%# 金額未入力や0円の項目も、確認できるように内訳へ表示する %>
+<% display_items = cost_list.cost_items.reject(&:marked_for_destruction?) %>
+<% unchecked_items = display_items.select(&:unchecked?) %>
+<% estimated_items = display_items.select(&:estimated?) %>
+<%# グラフに含まれる金額がある概算項目を判定 %>
+<% has_estimated_items = estimated_items.any? { |item| item.amount.to_i.positive? } %>
 
 <div class="row mb-4">
   <div class="col-md-6 mb-3 mb-md-0">
@@ -30,15 +32,12 @@
           </span>
         </p>
 
-        <% unchecked_items = cost_list.cost_items.select(&:unchecked?) %>
-        <% estimated_items = cost_list.cost_items.select(&:estimated?) %>
-
-        <% if unchecked_items.present? %>
-          <p class="mb-0">未確認の費用項目があります。まずは未確認項目の金額を確認してください。</p>
-        <% elsif estimated_items.present? %>
-          <p class="mb-0">概算の費用項目が含まれています。正式な金額に更新すると総額が変わる可能性があります。</p>
-        <% else %>
-          <p class="mb-0">確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。</p>
+        <% if unchecked_items.empty? %>
+          <% if estimated_items.present? %>
+            <p class="mb-0">概算の費用項目が含まれています。正式な金額に更新すると総額が変わる可能性があります。</p>
+          <% else %>
+            <p class="mb-0">確定済みの金額で予算を超えています。金額が大きい項目から見直しを検討してください。</p>
+          <% end %>
         <% end %>
 
         <% if largest_category.present? %>
@@ -54,6 +53,14 @@
             です。
           </p>
         <% end %>
+      <% end %>
+
+      <% if unchecked_items.present? %>
+        <p class="mt-2 mb-0">未確認の費用項目が<%= unchecked_items.size %>件あります。まずは未確認項目の金額を確認してください。</p>
+      <% end %>
+
+      <% if display_items.any? { |item| item.amount.nil? } %>
+        <p class="text-muted mt-2 mb-0">金額未入力の項目があるため、表示中の合計は最終総額ではありません。</p>
       <% end %>
 
       <div class="mt-4">
@@ -95,7 +102,11 @@
                     </div>
 
                     <div class="text-sm-end fw-semibold">
-                      <%= number_to_currency(item.amount.to_i, unit: "円", precision: 0, format: "%n%u") %>
+                      <% if item.amount.nil? %>
+                        金額未入力
+                      <% else %>
+                        <%= number_to_currency(item.amount, unit: "円", precision: 0, format: "%n%u") %>
+                      <% end %>
                     </div>
                   </div>
                 <% end %>

@@ -1,10 +1,5 @@
 class AccountDeletionsController < ApplicationController
-  CONFIRMATION_FIELDS = %i[
-    user_information_confirmed
-    google_authentication_confirmed
-    cost_data_confirmed
-    irreversible_confirmed
-  ].freeze
+  CONFIRMATION_FIELDS = %i[user_information_confirmed google_authentication_confirmed cost_data_confirmed irreversible_confirmed].freeze
   PERMITTED_FIELDS = (CONFIRMATION_FIELDS + [ :current_password ]).freeze
 
   before_action :require_logged_in_user

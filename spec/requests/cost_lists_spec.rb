@@ -711,7 +711,7 @@ RSpec.describe "費用リスト", type: :request do
       }
 
       expect(response).to redirect_to(mypage_path)
-      expect(flash[:alert]).to eq("リスト名を変更できませんでした")
+      expect(flash[:alert]).to eq("リスト名を変更できませんでした：リスト名を入力してください")
       expect(cost_list.reload.title).to eq("変更前のリスト名")
     end
 

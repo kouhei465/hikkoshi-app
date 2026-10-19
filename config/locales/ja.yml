@@ -8,9 +8,11 @@ ja:
         password_confirmation: "パスワード（確認用）"
 
       cost_list:
+        title: "リスト名"
         budget: "予算"
 
       cost_item:
+        name: "費用名"
         amount: "金額"
         status: "状態"
 

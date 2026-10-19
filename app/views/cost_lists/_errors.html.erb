@@ -1,0 +1,10 @@
+<% if cost_list.errors.any? %>
+  <div class="alert alert-danger" role="alert">
+    <p class="mb-2">入力内容を確認してください。</p>
+    <ul class="mb-0">
+      <% cost_list_error_messages(cost_list).each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
